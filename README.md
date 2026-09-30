@@ -29,18 +29,99 @@ Outputs: `reports/results.json` (scores, per-check pass/fail, latencies) and `re
 
 ## Architecture
 
+```mermaid
+flowchart LR
+    subgraph IN["📥 Input events · timestamped"]
+        direction TB
+        T["🗣️ Transcript chunks<br/>+ end-of-turn markers"]
+        A["🎙️ WAV clips"]
+        F["📷 PNG camera frames"]
+        I["✋ Interruption signal"]
+        M["🧰 Tool manifest"]
+    end
+
+    subgraph FAST["⚡ Fast path · synchronous, never awaits"]
+        direction TB
+        N["Disfluency normaliser<br/>fillers · stutters · false starts"]
+        E["Semantic end-of-turn check<br/>holds the floor on pauses"]
+        R["Self-repair & slot<br/>conflict detection"]
+        K["Spoken acknowledgment<br/>within milliseconds"]
+        N --> E --> R --> K
+    end
+
+    subgraph COORD["🛡️ Coordination layer"]
+        direction TB
+        G["Cancellation graph<br/>calls · retries · timers"]
+        S["Two-tier slots<br/>tentative ➜ committed"]
+        L["SHA-256 idempotency keys<br/>+ commit ledger"]
+    end
+
+    subgraph SLOW["🧠 Slow path · async tasks & worker threads"]
+        direction TB
+        P["Schema-driven planner<br/>chained calls · clarify · retry"]
+        V["Perception<br/>RapidOCR · LED colour · Whisper"]
+    end
+
+    subgraph OUT["📤 Output actions"]
+        direction TB
+        O1["speak"]
+        O2["tool_call · call_id"]
+        O3["cancel"]
+        O4["clarify"]
+        O5["final_response<br/>+ state snapshot"]
+    end
+
+    T --> N
+    I --> R
+    A --> V
+    F --> V
+    M --> P
+    R -- "stale work" --> G
+    R -- "new values" --> S
+    S --> P
+    V --> P
+    P --> L
+    L --> O2
+    G --> O3
+    K --> O1
+    P --> O4
+    P --> O5
+
+    classDef input fill:#EEF2FF,stroke:#4F46E5,color:#1E1B4B
+    classDef fast fill:#ECFDF5,stroke:#059669,color:#064E3B
+    classDef coord fill:#FEF2F2,stroke:#DC2626,color:#7F1D1D
+    classDef slow fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A
+    classDef out fill:#F5F3FF,stroke:#7C3AED,color:#3B0764
+    class T,A,F,I,M input
+    class N,E,R,K fast
+    class G,S,L coord
+    class P,V slow
+    class O1,O2,O3,O4,O5 out
 ```
-events ──► FAST PATH (sync, never awaits)            ──► speak / cancel / clarify   (same tick)
-            • disfluency normaliser + self-repair      │
-            • semantic end-of-turn check (hold floor)  │
-            • conflict detection → Cancellation Graph ─┤
-            • two-tier slots: tentative │ committed    │
-          SLOW PATH (asyncio tasks + worker threads)   ──► tool_call / final_response
-            • schema-driven planner (manifest → args, chained calls, clarify)
-            • perception: RapidOCR + LED/quality (frames), Whisper (audio, optional)
-          COORDINATION
-            • call ledger, SHA-256 idempotency keys, commit ledger (no double booking)
-            • bounded retries (same key), progress narration only after 2.5 s of silence
+
+**A correction mid-booking** (scenario T04, times from a real run):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant F as Fast path
+    participant C as Coordination
+    participant S as Slow path
+    participant T as Tools
+    U->>F: "Book the cheapest flight Pune → Chennai for 2" (0.50 s)
+    F-->>U: "Sure. Booking flight for 2." (~5 ms)
+    F->>S: plan: search, then book
+    S->>T: search_flights
+    T-->>S: 3 flights (cheapest UK-406)
+    S->>T: book_flight(UK-406, 2) · call_002
+    U->>F: "wait, make it 3 passengers" (2.60 s)
+    F->>C: slot changed: passengers 2 → 3
+    C->>T: cancel call_002 (< 1 ms)
+    F-->>U: "Got it, updating that."
+    S->>T: book_flight(UK-406, 3) · new SHA-256 key
+    T-->>S: confirmed BK959575
+    S-->>U: "Done. Your flight is confirmed: BK959575" (one booking)
 ```
 
 | Module | Role |
