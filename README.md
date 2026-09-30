@@ -82,3 +82,14 @@ cancel grace 15 ms, floor target 250 ms.
   and schema-driven; no API keys are needed.
 * LED **blink counting** across frames is not implemented; blink patterns come from speech
   ("blinking blue twice"), the colour from the frame.
+
+## Web demo (local or Vercel)
+
+`public/index.html` + `api/run.py` run the real agent on the 12 text scenarios (and on turns you type),
+side by side with the half-duplex baseline. It needs only the Python standard library.
+
+* **Local:** `python api/run.py` → open http://localhost:8000
+* **Vercel:** import the GitHub repo at vercel.com → *Add New → Project*, framework preset **Other**, no build
+  command → **Deploy**. Or from a terminal: `npx vercel` then `npx vercel --prod`.
+  `public/` is served as the page and `api/run.py` becomes the Python function; `.vercelignore` keeps the heavy
+  OCR dependencies out. Camera (V*) scenarios need OCR, so they run only locally via `run_eval.py`.

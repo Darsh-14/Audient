@@ -1,0 +1,1 @@
+# Vercel only needs the stdlib for the text-scenario demo (heavy OCR deps stay local).

@@ -1,0 +1,12 @@
+requirements.txt
+requirements-asr.txt
+docs/
+assets/
+reports/
+tests/
+scripts/
+Dockerfile
+docker-compose.yml
+run_evaluation.sh
+**/__pycache__
+.pytest_cache
