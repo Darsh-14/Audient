@@ -8,6 +8,11 @@ queue (transcript chunks with end-of-turn markers, WAV clips, PNG frames, interr
 results, tool manifests) and writes actions to another (spoken fillers/acks/progress, tool calls with
 explicit `call_id`, cancellations, clarifications, final responses with a state snapshot).
 
+## Demo video & presentation
+
+* **Demo video (≤ 5 min):** [Google Drive folder](https://drive.google.com/drive/folders/16Jqalua3wP0c1ag2Fa3MNCiXJdr55boL)
+* **Presentation:** [docs/SRMIST_krenos_Submission.pptx](docs/SRMIST_krenos_Submission.pptx)
+
 ## Quick start
 
 ```bash

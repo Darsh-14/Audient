@@ -11,7 +11,7 @@ from pptx.util import Inches, Pt
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "docs" / "template_original.pptx"
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs" / "CollegeName_TeamName_Submission.pptx"
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs" / "SRMIST_krenos_Submission.pptx"
 R = json.loads((ROOT / "reports" / "results.json").read_text(encoding="utf-8"))
 A, B = R["audient"]["aggregate"], R["baseline"]["aggregate"]
 
