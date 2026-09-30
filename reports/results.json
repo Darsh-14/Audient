@@ -1,0 +1,2068 @@
+{
+ "audient": {
+  "aggregate": {
+   "weighted_score": 100.0,
+   "weighted_base_score": 100.0,
+   "scenarios_all_checks_pass": 15,
+   "category_pct": {
+    "task": 100.0,
+    "interrupt": 100.0,
+    "latency": 100.0,
+    "safety": 100.0
+   },
+   "scenarios": 15,
+   "mean_first_response_ms": 1.19,
+   "duplicate_commit_scenarios": 0,
+   "false_claim_scenarios": 0
+  },
+  "scenarios": [
+   {
+    "id": "T01_basic_search",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Delhi', 'date': '2026-10-02', 'passengers': 2}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Delhi'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Delhi')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 5.3 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     5.3
+    ],
+    "mean_first_response_ms": 5.3,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.006
+   },
+   {
+    "id": "T02_barge_in_self_correction",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Bangalore', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Bangalore'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Bangalore')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled search_flights {'destination': 'Delhi'} within 15 ms (got [0.4] ms)",
+       true
+      ],
+      [
+       "no stale re-run of search_flights {'destination': 'Delhi'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 0.6 ms",
+       1.0
+      ],
+      [
+       "first response 0.5 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.6,
+     0.5
+    ],
+    "mean_first_response_ms": 0.55,
+    "cancel_latency_ms": [
+     799.8
+    ],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.002
+   },
+   {
+    "id": "T03_chained_booking",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Delhi', 'destination': 'Goa', 'date': '2026-10-03'}",
+       true
+      ],
+      [
+       "effective call book_flight {'passengers': 2}",
+       true
+      ],
+      [
+       "book_flight committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'book_flight', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('BK')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 0.9 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.9
+    ],
+    "mean_first_response_ms": 0.9,
+    "cancel_latency_ms": [],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T04_mid_booking_adjust",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "book_flight committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "commit book_flight {'passengers': 3}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'book_flight', 'slots': {'passengers': 3}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('BK')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled book_flight {'passengers': 2} within 15 ms (got [0.7] ms)",
+       true
+      ],
+      [
+       "no stale re-run of book_flight {'passengers': 2}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 0.9 ms",
+       1.0
+      ],
+      [
+       "first response 0.9 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.9,
+     0.9
+    ],
+    "mean_first_response_ms": 0.9,
+    "cancel_latency_ms": [
+     499.7
+    ],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 0.002
+   },
+   {
+    "id": "T05_clarify_missing_slot",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Hyderabad', 'destination': 'Kolkata', 'date': '2026-10-05'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'origin': 'Hyderabad', 'destination': 'Kolkata'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Kolkata')",
+       true
+      ],
+      [
+       "asked a clarification",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=3.0",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 0.5 ms",
+       1.0
+      ],
+      [
+       "first response 0.5 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.5,
+     0.5
+    ],
+    "mean_first_response_ms": 0.5,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T06_retry_after_fault",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Chennai', 'destination': 'Kochi', 'date': '2026-10-04'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Kochi')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 0.7 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.7
+    ],
+    "mean_first_response_ms": 0.7,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T07_unseen_tool",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call reserve_table {'restaurant': 'Olive Garden', 'party_size': 4, 'time': '20:00'}",
+       true
+      ],
+      [
+       "reserve_table committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'reserve_table', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('RSV')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 0.8 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double reserve_table (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.8
+    ],
+    "mean_first_response_ms": 0.8,
+    "cancel_latency_ms": [],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T08_user_cancel",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "final snapshot {'status': 'cancelled'}",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled get_route {'destination': 'airport'} within 15 ms (got [0.4] ms)",
+       true
+      ],
+      [
+       "no stale re-run of get_route {}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 0.5 ms",
+       1.0
+      ],
+      [
+       "first response 0.4 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.5,
+     0.4
+    ],
+    "mean_first_response_ms": 0.45,
+    "cancel_latency_ms": [
+     499.9
+    ],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T09_acoustic_pause_filler",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Chennai', 'date': '2026-10-04'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Chennai')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=1.1",
+       true
+      ],
+      [
+       "did not cut the user off during the pause",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 0.6 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.6
+    ],
+    "mean_first_response_ms": 0.6,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T10_stutter_false_start",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Pune', 'destination': 'Goa', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "book_flight committed exactly 0x (got 0)",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Goa')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 0.7 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (0 commits, expected 0)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.7
+    ],
+    "mean_first_response_ms": 0.7,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T11_speculative_prefetch",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Delhi', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Delhi')",
+       true
+      ],
+      [
+       "final answer by t=2.2s",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 0.6 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.6
+    ],
+    "mean_first_response_ms": 0.6,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T12_in_car_destination_change",
+    "modality": "text",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call get_route {'destination': 'airport'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'get_route', 'slots': {'destination': 'airport'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('airport')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled get_route {'destination': 'office'} within 15 ms (got [0.4] ms)",
+       true
+      ],
+      [
+       "no stale re-run of get_route {'destination': 'office'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 0.5 ms",
+       1.0
+      ],
+      [
+       "first response 0.5 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.5,
+     0.5
+    ],
+    "mean_first_response_ms": 0.5,
+    "cancel_latency_ms": [
+     499.9
+    ],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "V01_frame_error_code",
+    "modality": "visual",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call lookup_manual {'device_model': 'WM-3000', 'error_code': 'E42'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'lookup_manual', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('filter')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 0.7 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.7
+    ],
+    "mean_first_response_ms": 0.7,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.714
+   },
+   {
+    "id": "V02_frame_too_dark",
+    "modality": "visual",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "final snapshot {'intent': 'lookup_manual', 'status': 'clarifying'}",
+       true
+      ],
+      [
+       "asked a clarification",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=99",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1.4 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1.4
+    ],
+    "mean_first_response_ms": 1.4,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.025
+   },
+   {
+    "id": "V03_multimodal_self_repair",
+    "modality": "visual",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call lookup_manual {'device_model': 'WM-3000', 'indicator': 'blue_blinking_2'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'lookup_manual', 'slots': {'indicator': 'blue_blinking_2'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('valve')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled lookup_manual {'error_code': 'E20'} within 15 ms (got [4.5] ms)",
+       true
+      ],
+      [
+       "no stale re-run of lookup_manual {'error_code': 'E20'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1.6 ms",
+       1.0
+      ],
+      [
+       "first response 4.9 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1.6,
+     4.9
+    ],
+    "mean_first_response_ms": 3.25,
+    "cancel_latency_ms": [
+     602.9
+    ],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 1.081
+   }
+  ]
+ },
+ "baseline": {
+  "aggregate": {
+   "weighted_score": 86.55,
+   "weighted_base_score": 75.35,
+   "scenarios_all_checks_pass": 1,
+   "category_pct": {
+    "task": 87.8,
+    "interrupt": 68.8,
+    "latency": 36.7,
+    "safety": 98.3
+   },
+   "scenarios": 15,
+   "mean_first_response_ms": 1474.79,
+   "duplicate_commit_scenarios": 1,
+   "false_claim_scenarios": 0
+  },
+  "scenarios": [
+   {
+    "id": "T01_basic_search",
+    "modality": "text",
+    "score": 98.62,
+    "base": 82.18,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.228,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Delhi', 'date': '2026-10-02', 'passengers': 2}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Delhi'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Delhi')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1601.2 ms",
+       0.22788571428571436
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1601.2
+    ],
+    "mean_first_response_ms": 1601.2,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.002
+   },
+   {
+    "id": "T02_barge_in_self_correction",
+    "modality": "text",
+    "score": 96.21,
+    "base": 80.18,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 0.667,
+     "latency": 0.456,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Bangalore', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Bangalore'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Bangalore')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled search_flights {'destination': 'Delhi'} within 15 ms (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of search_flights {'destination': 'Delhi'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1601.4 ms",
+       0.22777142857142862
+      ],
+      [
+       "first response 801.4 ms",
+       0.6849142857142858
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1601.4,
+     801.4
+    ],
+    "mean_first_response_ms": 1201.4,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.002
+   },
+   {
+    "id": "T03_chained_booking",
+    "modality": "text",
+    "score": 92.31,
+    "base": 76.92,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Delhi', 'destination': 'Goa', 'date': '2026-10-03'}",
+       true
+      ],
+      [
+       "effective call book_flight {'passengers': 2}",
+       true
+      ],
+      [
+       "book_flight committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'book_flight', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('BK')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 3401.7 ms",
+       0.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     3401.7
+    ],
+    "mean_first_response_ms": 3401.7,
+    "cancel_latency_ms": [],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 0.002
+   },
+   {
+    "id": "T04_mid_booking_adjust",
+    "modality": "text",
+    "score": 76.59,
+    "base": 63.83,
+    "quality": 1.2,
+    "categories": {
+     "task": 0.75,
+     "interrupt": 0.667,
+     "latency": 0.2,
+     "safety": 0.75
+    },
+    "checks": {
+     "task": [
+      [
+       "book_flight committed exactly 1x (got 2)",
+       false
+      ],
+      [
+       "commit book_flight {'passengers': 3}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'book_flight', 'slots': {'passengers': 3}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('BK')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled book_flight {'passengers': 2} within 15 ms (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of book_flight {'passengers': 2}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 3401.7 ms",
+       0.0
+      ],
+      [
+       "first response 1301.7 ms",
+       0.3990285714285715
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (2 commits, expected 1)",
+       false
+      ]
+     ]
+    },
+    "first_response_ms": [
+     3401.7,
+     1301.7
+    ],
+    "mean_first_response_ms": 2351.7,
+    "cancel_latency_ms": [],
+    "commits": 2,
+    "false_claims": 0,
+    "wall_s": 0.002
+   },
+   {
+    "id": "T05_clarify_missing_slot",
+    "modality": "text",
+    "score": 100.0,
+    "base": 94.21,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 0.614,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Hyderabad', 'destination': 'Kolkata', 'date': '2026-10-05'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'origin': 'Hyderabad', 'destination': 'Kolkata'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Kolkata')",
+       true
+      ],
+      [
+       "asked a clarification",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=3.0",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 0.6 ms",
+       1.0
+      ],
+      [
+       "first response 1600.6 ms",
+       0.22822857142857145
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     0.6,
+     1600.6
+    ],
+    "mean_first_response_ms": 800.6,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.002
+   },
+   {
+    "id": "T06_retry_after_fault",
+    "modality": "text",
+    "score": 22.71,
+    "base": 20.65,
+    "quality": 1.1,
+    "categories": {
+     "task": 0.0,
+     "latency": 0.228,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Chennai', 'destination': 'Kochi', 'date': '2026-10-04'}",
+       false
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       false
+      ],
+      [
+       "response grounded ('Kochi')",
+       false
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1600.9 ms",
+       0.22805714285714274
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1600.9
+    ],
+    "mean_first_response_ms": 1600.9,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T07_unseen_tool",
+    "modality": "text",
+    "score": 100.0,
+    "base": 83.5,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.285,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call reserve_table {'restaurant': 'Olive Garden', 'party_size': 4, 'time': '20:00'}",
+       true
+      ],
+      [
+       "reserve_table committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'reserve_table', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('RSV')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1500.9 ms",
+       0.2851999999999999
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double reserve_table (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1500.9
+    ],
+    "mean_first_response_ms": 1500.9,
+    "cancel_latency_ms": [],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T08_user_cancel",
+    "modality": "text",
+    "score": 88.67,
+    "base": 80.61,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 0.667,
+     "latency": 0.485,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "final snapshot {'status': 'cancelled'}",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled get_route {'destination': 'airport'} within 15 ms (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of get_route {}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1401.0 ms",
+       0.3422857142857143
+      ],
+      [
+       "first response 901.0 ms",
+       0.628
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1401.0,
+     901.0
+    ],
+    "mean_first_response_ms": 1151.0,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T09_acoustic_pause_filler",
+    "modality": "text",
+    "score": 85.11,
+    "base": 70.92,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 0.5,
+     "latency": 0.228,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Chennai', 'date': '2026-10-04'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Chennai')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=1.1",
+       true
+      ],
+      [
+       "did not cut the user off during the pause",
+       false
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1600.6 ms",
+       0.22822857142857145
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1600.6
+    ],
+    "mean_first_response_ms": 1600.6,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T10_stutter_false_start",
+    "modality": "text",
+    "score": 98.62,
+    "base": 82.19,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.228,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Pune', 'destination': 'Goa', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "book_flight committed exactly 0x (got 0)",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Goa')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1600.9 ms",
+       0.22805714285714274
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (0 commits, expected 0)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1600.9
+    ],
+    "mean_first_response_ms": 1600.9,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T11_speculative_prefetch",
+    "modality": "text",
+    "score": 80.16,
+    "base": 66.8,
+    "quality": 1.2,
+    "categories": {
+     "task": 0.75,
+     "latency": 0.228,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Delhi', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Delhi')",
+       true
+      ],
+      [
+       "final answer by t=2.2s",
+       false
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1600.8 ms",
+       0.22811428571428571
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1600.8
+    ],
+    "mean_first_response_ms": 1600.8,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "T12_in_car_destination_change",
+    "modality": "text",
+    "score": 96.73,
+    "base": 80.61,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 0.667,
+     "latency": 0.485,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call get_route {'destination': 'airport'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'get_route', 'slots': {'destination': 'airport'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('airport')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled get_route {'destination': 'office'} within 15 ms (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of get_route {'destination': 'office'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1401.0 ms",
+       0.3422857142857143
+      ],
+      [
+       "first response 901.0 ms",
+       0.628
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1401.0,
+     901.0
+    ],
+    "mean_first_response_ms": 1151.0,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.001
+   },
+   {
+    "id": "V01_frame_error_code",
+    "modality": "visual",
+    "score": 100.0,
+    "base": 84.56,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.331,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call lookup_manual {'device_model': 'WM-3000', 'error_code': 'E42'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'lookup_manual', 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('filter')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1420.7 ms",
+       0.33102857142857134
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1420.7
+    ],
+    "mean_first_response_ms": 1420.7,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.421
+   },
+   {
+    "id": "V02_frame_too_dark",
+    "modality": "visual",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "final snapshot {'intent': 'lookup_manual', 'status': 'clarifying'}",
+       true
+      ],
+      [
+       "asked a clarification",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=99",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 25.6 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     25.6
+    ],
+    "mean_first_response_ms": 25.6,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.026
+   },
+   {
+    "id": "V03_multimodal_self_repair",
+    "modality": "visual",
+    "score": 61.53,
+    "base": 55.94,
+    "quality": 1.1,
+    "categories": {
+     "task": 0.667,
+     "interrupt": 0.333,
+     "latency": 0.507,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call lookup_manual {'device_model': 'WM-3000', 'indicator': 'blue_blinking_2'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'lookup_manual', 'slots': {'indicator': 'blue_blinking_2'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('valve')",
+       false
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled lookup_manual {'error_code': 'E20'} within 15 ms (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of lookup_manual {'error_code': 'E20'}",
+       false
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1412.8 ms",
+       0.33554285714285725
+      ],
+      [
+       "first response 812.8 ms",
+       0.6784000000000001
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1412.8,
+     812.8
+    ],
+    "mean_first_response_ms": 1112.8,
+    "cancel_latency_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.799
+   }
+  ]
+ }
+}

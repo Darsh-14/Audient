@@ -1,0 +1,7 @@
+# Core (pinned; verified on Python 3.13.3 / Windows 11)
+numpy==2.3.3
+pillow==11.2.1
+rapidocr_onnxruntime==1.2.3
+onnxruntime==1.30.0
+opencv-python==5.0.0.93
+soundfile==0.14.0

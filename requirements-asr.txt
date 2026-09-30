@@ -1,0 +1,5 @@
+# Optional: audio (WAV) scenarios. The model (openai/whisper-base.en) must be downloaded once:
+#   python -c "from transformers import WhisperProcessor as P, WhisperForConditionalGeneration as M; P.from_pretrained('openai/whisper-base.en'); M.from_pretrained('openai/whisper-base.en')"
+torch==2.8.0
+torchaudio==2.8.0
+transformers==4.56.2

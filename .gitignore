@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+reports/traces/
+.pytest_cache/
+
+# local assistant/tooling files: never commit
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.mcp.json

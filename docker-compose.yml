@@ -1,0 +1,4 @@
+services:
+  eval:
+    build: .
+    volumes: ["./reports:/app/reports"]
