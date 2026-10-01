@@ -4,18 +4,21 @@ GET  /api/run                     list the runnable (text) scenarios
 GET  /api/run?scenario=T04        run one scenario for Audient and the half-duplex baseline
 POST /api/run {"turns": [...]}    run your own timed turns against the core tool manifest
 
-Local:  python api/run.py   ->   http://localhost:8000
+Local:  python api/run.py   ->   http://localhost:8000  (serves the web app in public/ and this API)
 Camera (V*) scenarios need OCR (numpy/onnxruntime) and are run with run_eval.py instead.
 """
 from __future__ import annotations
 
 import datetime as dt
 import json
+import mimetypes
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
+
+mimetypes.add_type("text/javascript", ".js")  # Windows registries sometimes map .js to text/plain
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -75,10 +78,22 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _static(self, path: str) -> None:
+        public = (ROOT / "public").resolve()
+        target = (public / unquote(path).lstrip("/")).resolve()
+        if target.is_dir():
+            target = target / "index.html"
+        if public not in target.parents or not target.is_file():
+            return self._send(404, {"error": "not found"})
+        ctype = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+        if ctype.startswith("text/") or ctype.endswith(("javascript", "json")):
+            ctype += "; charset=utf-8"
+        self._send(200, target.read_bytes(), ctype)
+
     def do_GET(self) -> None:
         u = urlparse(self.path)
-        if not u.path.startswith("/api/"):  # only reached when running locally
-            return self._send(200, (ROOT / "public" / "index.html").read_bytes(), "text/html; charset=utf-8")
+        if not u.path.startswith("/api/"):  # only reached when running locally: serve the web app
+            return self._static(u.path)
         sid = (parse_qs(u.query).get("scenario") or [""])[0]
         scns = text_scenarios()
         if not sid:

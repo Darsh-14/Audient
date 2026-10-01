@@ -138,6 +138,7 @@ class RealtimeAgent:
         self.awaiting: str | None = None      # slot or "choice" we asked about
         self.results: dict[str, Any] = {}     # provider tool -> (args_key, result)
         self.buffer: list[str] = []
+        self.hyp = ""                          # live ASR hypothesis for the utterance in progress
         self.epoch = 0
         # coordination
         self.calls: dict[str, dict] = {}
@@ -201,8 +202,15 @@ class RealtimeAgent:
             if self.hold_task is not None and not self.hold_task.done():
                 self.hold_task.cancel()  # the user resumed after a pause: same turn continues
             self.hold_task = None
-            self.buffer.append(ev.get("text", ""))
-            text = " ".join(self.buffer).strip()
+            if ev.get("hypothesis"):
+                # streaming ASR: the text is the whole current utterance so far (it gets revised),
+                # not a new chunk; it joins the buffer only once final
+                self.hyp = "" if ev.get("end_of_turn", True) else ev.get("text", "")
+                if ev.get("end_of_turn", True):
+                    self.buffer.append(ev.get("text", ""))
+            else:
+                self.buffer.append(ev.get("text", ""))
+            text = " ".join(self.buffer + ([self.hyp] if self.hyp else [])).strip()
             if ev.get("end_of_turn", True):
                 if turn_incomplete(text):
                     # acoustic pause / trailing filler: keep the floor with the user, don't act yet
@@ -429,7 +437,7 @@ class RealtimeAgent:
         acked = False
         if needs_vis and self.frame_task is not None:
             if not self.frame_task.done():
-                self.say("Let me take a look at the camera feed.", "ack")
+                self.say(("Got it, updating that. " if corrected else "") + "Let me take a look at the camera feed.", "ack")
                 acked = True
             try:
                 vis = await asyncio.shield(self.frame_task)

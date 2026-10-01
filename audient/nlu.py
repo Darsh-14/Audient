@@ -80,8 +80,16 @@ class Parse:
     tokens: set[str] = field(default_factory=set)
 
 
+# Frequent speech-to-text mishearings in this domain (observed with Whisper tiny.en on real audio).
+ASR_FIXES = [(re.compile(r"\bno weight\b", re.I), "no wait"), (re.compile(r"\bdeli\b", re.I), "Delhi"),
+             (re.compile(r"\bbangaluru\b", re.I), "Bengaluru"), (re.compile(r"\bchenai\b", re.I), "Chennai")]
+
+
 def clean_text(text: str) -> str:
-    t = STUTTER_RE.sub("", text)
+    t = text
+    for pat, fix in ASR_FIXES:
+        t = pat.sub(fix, t)
+    t = STUTTER_RE.sub("", t)
     t = FRAGMENT_RE.sub("", t)
     t = ELONG_RE.sub(r"\1", t)
     t = FILLER_RE.sub("", t)

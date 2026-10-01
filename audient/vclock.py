@@ -9,7 +9,9 @@ milliseconds when the agent is not doing heavy compute.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import selectors
+import sys
 import time
 from typing import Any, Callable
 
@@ -55,7 +57,14 @@ class VirtualEventLoop(asyncio.SelectorEventLoop):
 
 
 async def compute(fn: Callable[..., Any], *args: Any) -> Any:
-    """Run blocking work in a thread; on a virtual loop its wall time is charged."""
+    """Run blocking work in a thread; on a virtual loop its wall time is charged.
+
+    In the browser (Pyodide) there are no threads: perception is asynchronous JavaScript
+    (OCR / Whisper in web workers), so the call is simply awaited.
+    """
+    if sys.platform == "emscripten" or inspect.iscoroutinefunction(fn):
+        res = fn(*args)
+        return await res if hasattr(res, "__await__") else res
     loop = asyncio.get_running_loop()
     clock = getattr(loop, "clock", None)
     if clock is not None:

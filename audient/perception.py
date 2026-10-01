@@ -109,3 +109,50 @@ class Perception:
         text = proc.batch_decode(gen.sequences, skip_special_tokens=True)[0].strip()
         lp = float(model.compute_transition_scores(gen.sequences, gen.scores, normalize_logits=True).mean())
         return {"text": text, "avg_logprob": lp, "ambiguous": "low_asr_confidence" if lp < -1.0 else None}
+
+
+# ---------------------------------------------------------------------- process isolation
+_WORKER: Perception | None = None
+
+
+def _w_init() -> None:
+    global _WORKER
+    _WORKER = Perception()
+    _WORKER.warmup()
+
+
+def _w_ping() -> bool:
+    return _WORKER is not None and _WORKER._asr is not None
+
+
+def _w_analyze(path: str) -> dict[str, Any]:
+    return _WORKER.analyze_frame(path)
+
+
+def _w_transcribe(path: str) -> dict[str, Any]:
+    return _WORKER.transcribe(path)
+
+
+class ProcessPerception:
+    """Runs :class:`Perception` in a separate worker process.
+
+    OCR / ASR pre- and post-processing is Python code that holds the GIL; run in a thread it
+    delayed the agent's fast path by 10-23 ms (measured). In its own process it cannot: the
+    calling thread only waits on a future, with the GIL released.
+    """
+
+    def __init__(self) -> None:
+        self._pool = None
+        self.asr_available = False
+
+    def warmup(self) -> None:
+        if self._pool is None:
+            from concurrent.futures import ProcessPoolExecutor
+            self._pool = ProcessPoolExecutor(max_workers=1, initializer=_w_init)
+            self.asr_available = self._pool.submit(_w_ping).result()
+
+    def analyze_frame(self, path: str) -> dict[str, Any]:
+        return self._pool.submit(_w_analyze, path).result()
+
+    def transcribe(self, path: str) -> dict[str, Any]:
+        return self._pool.submit(_w_transcribe, path).result()

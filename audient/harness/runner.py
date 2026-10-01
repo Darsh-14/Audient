@@ -32,7 +32,10 @@ async def _run(scn: dict, agent: Any) -> dict:
     trace: list[dict] = []
 
     def deliver(ev: dict) -> None:
-        trace.append({"dir": "in", **ev})
+        # t = when the scenario says it happens; t_recv = when the agent can actually see it. They differ
+        # when the harness waits in real time (perception running) and the OS timer wakes it late
+        # (~15.6 ms timer tick on Windows) -- latency is measured from t_recv, the lag reported separately.
+        trace.append({"dir": "in", **ev, "t_recv": round(asyncio.get_running_loop().time(), 6)})
         inbox.put_nowait(ev)
 
     env = MockEnv(scn["manifest"], scn.get("env", {}), deliver)

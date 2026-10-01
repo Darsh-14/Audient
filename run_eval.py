@@ -17,7 +17,7 @@ from audient.agent import RealtimeAgent
 from audient.baseline import HalfDuplexAgent
 from audient.harness.runner import run_scenario
 from audient.harness.scorer import aggregate, score
-from audient.perception import Perception
+from audient.perception import ProcessPerception
 
 ROOT = Path(__file__).resolve().parent
 
@@ -49,10 +49,10 @@ def main() -> int:
     ap.add_argument("--out", default=str(ROOT / "reports"))
     a = ap.parse_args()
     suite = load_suite(a.show or a.only)
-    perception = Perception()
+    perception = ProcessPerception()  # OCR/ASR in their own process: no GIL contention with the agent
     t0 = time.perf_counter()
     perception.warmup()  # setup/warm-up hook (not part of any scenario timeline)
-    print(f"warm-up: {time.perf_counter() - t0:.1f}s (ASR model available: {perception._asr is not None})")
+    print(f"warm-up: {time.perf_counter() - t0:.1f}s (ASR model available: {perception.asr_available})")
     agents = {"audient": RealtimeAgent, "baseline": HalfDuplexAgent}
     names = ["audient", "baseline"] if a.agent == "both" else [a.agent]
     out = Path(a.out)
