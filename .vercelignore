@@ -1,5 +1,6 @@
-# Vercel serves only the static web app in public/ (the agent runs in the browser from public/py/bundle.json)
-api/
+# Vercel serves the static web app in public/ (the agent runs in the browser from public/py/bundle.json)
+# plus one function, api/understand.py (language-model understanding; stdlib only)
+api/run.py
 audient/
 scenarios/
 run_eval.py
@@ -15,3 +16,5 @@ docker-compose.yml
 run_evaluation.sh
 **/__pycache__
 .pytest_cache
+.env
+.env.*

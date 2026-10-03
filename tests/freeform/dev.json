@@ -1,0 +1,613 @@
+{
+ "name": "dev",
+ "about": "Free-form requests used while improving the agent (first run 2026-10-02 against commit 227bfe0). Session date 2026-10-02 (a Friday). Expected behaviour is what a correct assistant would do with the web app's six tools.",
+ "cases": [
+  {
+   "id": "A1",
+   "turns": [
+    "Find me flights from Delhi to Goa next Friday"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Delhi",
+       "destination": "Goa",
+       "date": "2026-10-09"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A2",
+   "turns": [
+    "Can you look up flights between Chennai and Hyderabad on Monday"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Chennai",
+       "destination": "Hyderabad",
+       "date": "2026-10-05"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A3",
+   "turns": [
+    "Mumbai to Delhi flights tomorrow"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Mumbai",
+       "destination": "Delhi",
+       "date": "2026-10-03"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A4",
+   "turns": [
+    "I'm flying out of Pune to Goa on Saturday"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Pune",
+       "destination": "Goa",
+       "date": "2026-10-03"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A5",
+   "turns": [
+    "Find flights from Indore to Delhi tomorrow"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Indore",
+       "destination": "Delhi",
+       "date": "2026-10-03"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A6",
+   "turns": [
+    "Search flights from Mumbai to Kolkata on 12/10"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Mumbai",
+       "destination": "Kolkata",
+       "date": "2026-10-12"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A7",
+   "turns": [
+    "Book the cheapest flight from Bangalore to Kolkata on 5 November for 2 adults"
+   ],
+   "expect": {
+    "commits": {
+     "book_flight": 1
+    },
+    "commit_args": [
+     {
+      "tool": "book_flight",
+      "args": {
+       "passengers": 2
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A8",
+   "turns": [
+    "Get me to the railway station"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "get_route",
+      "args": {
+       "destination": "railway station"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A9",
+   "turns": [
+    "Navigate to Phoenix Marketcity"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "get_route",
+      "args": {
+       "destination": "Phoenix Marketcity"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A10",
+   "turns": [
+    "Reserve a table for 2 at Toit tomorrow at 7"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "reserve_table",
+      "args": {
+       "restaurant": "Toit",
+       "party_size": 2,
+       "date": "2026-10-03",
+       "time": "19:00"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A11",
+   "turns": [
+    "Create a ticket, my fridge is not cooling"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "create_ticket",
+      "args": {
+       "device": "fridge"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A12",
+   "turns": [
+    "My AC is making a weird noise"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "create_ticket",
+      "args": {
+       "device": "ac"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "A13",
+   "turns": [
+    "What does error E42 mean on my WM3000"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "lookup_manual",
+      "args": {
+       "device_model": "WM3000",
+       "error_code": "E42"
+      }
+     }
+    ],
+    "contains": [
+     "drain"
+    ]
+   }
+  },
+  {
+   "id": "A14",
+   "turns": [
+    "My dishwasher DW-500 shows error E5"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "lookup_manual",
+      "args": {
+       "device_model": "DW-500",
+       "error_code": "E5"
+      }
+     }
+    ],
+    "contains": [
+     "couldn't find"
+    ]
+   }
+  },
+  {
+   "id": "B1",
+   "turns": [
+    "hi"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "flight"
+    ]
+   }
+  },
+  {
+   "id": "B2",
+   "turns": [
+    "Who are you and what can you do?"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "flight"
+    ]
+   }
+  },
+  {
+   "id": "B3",
+   "turns": [
+    "What's the weather in Pune?"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "B4",
+   "turns": [
+    "Set an alarm for 6 am"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "B5",
+   "turns": [
+    "Book a cab to the airport"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "B6",
+   "turns": [
+    "Order a pizza"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "B7",
+   "turns": [
+    "Send a message to Mom saying I'll be late"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "B8",
+   "turns": [
+    "What is the capital of France?"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "C1",
+   "turns": [
+    "Find flights from Mumbai to Delhi tomorrow",
+    "Book the second one for 2 people"
+   ],
+   "expect": {
+    "commits": {
+     "book_flight": 1
+    },
+    "commit_args": [
+     {
+      "tool": "book_flight",
+      "args": {
+       "flight_id": "6E-302",
+       "passengers": 2
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "C2",
+   "turns": [
+    "I want to fly to Mumbai tomorrow",
+    "From Chennai"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Chennai",
+       "destination": "Mumbai",
+       "date": "2026-10-03"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "C3",
+   "turns": [
+    "Find flights from Mumbai to Delhi tomorrow",
+    "What time does the cheapest one leave?"
+   ],
+   "expect": {
+    "max_calls": 1,
+    "contains": [
+     "18:45"
+    ],
+    "not_contains": [
+     "I found"
+    ]
+   }
+  },
+  {
+   "id": "C4",
+   "turns": [
+    "Book the cheapest flight from Pune to Goa tomorrow for 1 passenger",
+    "Actually cancel that booking"
+   ],
+   "expect": {
+    "commits": {
+     "book_flight": 1
+    },
+    "contains": [
+     "already"
+    ]
+   }
+  },
+  {
+   "id": "C5",
+   "turns": [
+    "Book a table for 4 at Olive Garden at 8 pm and find flights from Delhi to Goa tomorrow"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "reserve_table",
+      "args": {
+       "restaurant": "Olive Garden",
+       "party_size": 4,
+       "time": "20:00"
+      }
+     }
+    ],
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Delhi",
+       "destination": "Goa",
+       "date": "2026-10-03"
+      }
+     }
+    ],
+    "no_call_args": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "passengers": 4
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "C6",
+   "turns": [
+    "Find flights from Delhi to Goa tomorrow",
+    "Take me to the airport",
+    "Book the cheapest of those flights for 1"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "get_route",
+      "args": {
+       "destination": "airport"
+      }
+     }
+    ],
+    "commits": {
+     "book_flight": 1
+    },
+    "commit_args": [
+     {
+      "tool": "book_flight",
+      "args": {
+       "flight_id": "AI-399",
+       "passengers": 1
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "C7",
+   "turns": [
+    "Find flights from Delhi to Goa tomorrow",
+    "yes"
+   ],
+   "expect": {
+    "max_calls": 1,
+    "no_repeat": true
+   }
+  },
+  {
+   "id": "C8",
+   "turns": [
+    "Kal Delhi se Mumbai ki flight dikhao"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Delhi",
+       "destination": "Mumbai",
+       "date": "2026-10-03"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "C9",
+   "turns": [
+    "Hey, so, I was wondering if maybe you could help me find a flight to Goa from Delhi this Sunday?"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "search_flights",
+      "args": {
+       "origin": "Delhi",
+       "destination": "Goa",
+       "date": "2026-10-04"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "N1",
+   "turns": [
+    "Find flights from Mumbai to Delhi tomorrow",
+    "hmm let me think about it"
+   ],
+   "expect": {
+    "max_calls": 1,
+    "no_repeat": true,
+    "contains": [
+     "take your time"
+    ]
+   }
+  },
+  {
+   "id": "N2",
+   "turns": [
+    "Find flights from Mumbai to Delhi tomorrow",
+    "no that's not what I wanted"
+   ],
+   "expect": {
+    "max_calls": 1,
+    "no_repeat": true,
+    "contains": [
+     "change"
+    ],
+    "not_contains": [
+     "device"
+    ]
+   }
+  },
+  {
+   "id": "N3",
+   "turns": [
+    "Take me to the airport",
+    "is there traffic on the way?"
+   ],
+   "expect": {
+    "max_calls": 1,
+    "contains": [
+     "don't have"
+    ],
+    "not_contains": [
+     "Ring Road"
+    ]
+   }
+  },
+  {
+   "id": "N4",
+   "turns": [
+    "Find flights from Mumbai to Delhi tomorrow",
+    "tell me more about the IndiGo one"
+   ],
+   "expect": {
+    "max_calls": 1,
+    "contains": [
+     "6E-302",
+     "6E-532"
+    ],
+    "not_contains": [
+     "Air India"
+    ]
+   }
+  },
+  {
+   "id": "N5",
+   "turns": [
+    "Find flights from Mumbai to Delhi tomorrow",
+    "I'd rather take a train"
+   ],
+   "expect": {
+    "max_calls": 1,
+    "contains": [
+     "can't"
+    ]
+   }
+  }
+ ]
+}

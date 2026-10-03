@@ -24,16 +24,25 @@ export class BrowserPerception {
   }
 
   // ------------------------------------------------------------------ vision
-  async _ocrWorker() {
-    if (!this._ocr) {
-      this.onStatus("vision", "Loading OCR model…");
-      const Tesseract = (await import(TESSERACT_URL)).default;
-      this._ocr = await Tesseract.createWorker("eng");
-      // an explicit resolution stops Tesseract estimating one (and logging it as an error) on every frame
-      await this._ocr.setParameters({ user_defined_dpi: "150" });
-      this.onStatus("vision", "OCR ready");
+  // silent: the background preload shows nothing; a frame the user sent says what it's waiting for
+  _ocrWorker(silent = false) {
+    if (!this._ocrP) {
+      this._ocrP = (async () => {
+        const Tesseract = (await import(TESSERACT_URL)).default;
+        const w = await Tesseract.createWorker("eng");
+        // an explicit resolution stops Tesseract estimating one (and logging it as an error) on every frame
+        await w.setParameters({ user_defined_dpi: "150" });
+        this._ocrReady = true;
+        if (this._ocrShown) this.onStatus("vision", "OCR ready");
+        return w;
+      })();
+      this._ocrP.catch(() => { this._ocrP = null; });
     }
-    return this._ocr;
+    if (!silent && !this._ocrReady && !this._ocrShown) {
+      this._ocrShown = true;
+      this.onStatus("vision", "Loading OCR model…");
+    }
+    return this._ocrP;
   }
 
   async analyzeFrame(ref) {
@@ -120,7 +129,7 @@ export class BrowserPerception {
   }
 
   preloadOcr() {
-    this._ocrWorker().catch(() => {});
+    this._ocrWorker(true).catch(() => {});
   }
 
   preloadAsr() {

@@ -1,5 +1,5 @@
 // On-device speech recognition (Whisper tiny.en via Transformers.js) in a Web Worker, so the
-// page — and the agent's fast path — never blocks while a clip is transcribed.
+// page (and the agent's fast path) never blocks while a clip is transcribed.
 const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0/dist/transformers.min.js";
 const MODEL = "Xenova/whisper-tiny.en";
 

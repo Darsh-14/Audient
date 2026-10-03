@@ -14,7 +14,10 @@ from typing import Any, Callable
 from ..protocol import is_state_modifying
 
 DEFAULT_LATENCY = {"search_flights": 1.6, "book_flight": 1.8, "create_ticket": 1.2,
-                   "lookup_manual": 1.0, "get_route": 1.4, "reserve_table": 1.5}
+                   "lookup_manual": 1.0, "get_route": 1.4, "reserve_table": 1.5,
+                   "get_weather": 0.9, "set_alarm": 0.4, "set_timer": 0.3, "set_reminder": 0.5, "add_calendar_event": 0.7,
+                   "send_message": 0.8, "make_call": 0.6, "play_music": 0.7, "control_device": 0.6, "book_cab": 1.4,
+                   "take_note": 0.4, "find_places": 0.8}
 
 MANUAL = {
     ("WM3000", "E42"): "Drain pump blocked. Unplug the machine, open the filter hatch at the "
@@ -84,7 +87,40 @@ def reserve_table(a: dict) -> dict:
             **{k: v for k, v in a.items()}}
 
 
+def _ref(prefix: str, a: dict) -> str:
+    return f"{prefix}-{_h(prefix, *sorted(a.items())) % 10**5:05d}"
+
+
+CONDITIONS = ["clear sky", "partly cloudy", "overcast", "light rain", "thunderstorms", "haze"]
+
+
+def get_weather(a: dict) -> dict:  # simulated; the web app replaces it with live Open-Meteo data
+    k = _h(a.get("location"), a.get("date"))
+    return {"location": a.get("location"), "date": a.get("date"), "condition": CONDITIONS[k % len(CONDITIONS)],
+            "high_c": 24 + k % 12, "low_c": 16 + k % 8, "rain_chance_pct": (k >> 3) % 90, "source": "simulated"}
+
+
+def find_places(a: dict) -> dict:  # simulated; the web app searches OpenStreetMap near the user's location
+    kind = str(a.get("kind") or "place")
+    k = _h(kind, a.get("near"))
+    places = [{"name": f"{['City', 'Central', 'Lakeside'][i]} {kind.title()}", "distance_km": round(0.6 + ((k >> (3 * i)) % 40) / 10, 1)}
+              for i in range(3)]
+    out = {"kind": kind, "places": sorted(places, key=lambda x: x["distance_km"]), "source": "simulated"}
+    if a.get("near"):
+        out["near"] = a["near"]
+    return out
+
+
+def _done(status: str, prefix: str):
+    return lambda a: {"status": status, "id": _ref(prefix, a), **a}
+
+
 HANDLERS: dict[str, Callable[[dict], dict]] = {
+    "get_weather": get_weather, "find_places": find_places, "set_alarm": _done("set", "ALM"), "set_timer": _done("running", "TMR"),
+    "set_reminder": _done("set", "REM"), "add_calendar_event": _done("added", "EVT"), "send_message": _done("sent", "MSG"),
+    "make_call": _done("calling", "CALL"), "play_music": _done("playing", "MUS"), "control_device": _done("done", "DEV"),
+    "book_cab": lambda a: {"status": "confirmed", "ride_id": _ref("RIDE", a), **a, "eta_min": 4 + _h(a.get("destination")) % 9},
+    "take_note": _done("saved", "NOTE"),
     "search_flights": search_flights, "book_flight": book_flight, "create_ticket": create_ticket,
     "lookup_manual": lookup_manual, "get_route": get_route, "reserve_table": reserve_table,
 }
@@ -92,8 +128,9 @@ HANDLERS: dict[str, Callable[[dict], dict]] = {
 
 class MockEnv:
     def __init__(self, manifest: list[dict], config: dict | None = None,
-                 deliver: Callable[[dict], None] | None = None) -> None:
+                 deliver: Callable[[dict], None] | None = None, live: dict | None = None) -> None:
         cfg = config or {}
+        self.live = live or {}  # tool -> async callable(args) -> result: real services (e.g. weather in the browser)
         self.tools = {t["name"]: t for t in manifest}
         self.latency = {**DEFAULT_LATENCY, **cfg.get("latency", {})}
         self.faults = cfg.get("faults", {})  # tool -> [attempt numbers that fail]
@@ -109,6 +146,9 @@ class MockEnv:
         tool, cid = action["tool"], action["call_id"]
         self.attempts[tool] = self.attempts.get(tool, 0) + 1
         fail = self.attempts[tool] in self.faults.get(tool, [])
+        if tool in self.live:  # a real service: the call is a task, so a cancel aborts it the same way
+            self.pending[cid] = asyncio.ensure_future(self._live_call(action))
+            return
         h = loop.call_later(self.latency.get(tool, 1.0), self._complete, action, fail)
         self.pending[cid] = h
 
@@ -120,6 +160,20 @@ class MockEnv:
         h.cancel()
         self.log.append({"call_id": call_id, "cancel": "aborted"})
         return "aborted"
+
+    async def _live_call(self, action: dict) -> None:
+        cid = action["call_id"]
+        try:
+            result = await self.live[action["tool"]](action.get("args", {}))
+            ev = {"type": "tool_result", "call_id": cid, "status": "ok", "result": result}
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:  # network or service error: reported, and retried by the agent
+            ev = {"type": "tool_result", "call_id": cid, "status": "error", "error": f"{type(e).__name__}: {e}"[:200],
+                  "retryable": True}
+        self.pending.pop(cid, None)
+        ev["t"] = asyncio.get_running_loop().time()
+        self.deliver(ev)
 
     def _complete(self, action: dict, fail: bool) -> None:
         cid, tool, args = action["call_id"], action["tool"], action.get("args", {})

@@ -13,10 +13,27 @@ FILES = ["audient/__init__.py", "audient/agent.py", "audient/nlu.py", "audient/p
          "audient/vclock.py", "audient/live.py", "audient/harness/__init__.py", "audient/harness/mock_env.py"]
 
 
-def build() -> dict:
+# areas the agent describes itself by (the benchmark manifests carry no categories and are unaffected)
+CORE_CATEGORIES = {"search_flights": "travel and directions", "book_flight": "travel and directions",
+                   "get_route": "travel and directions", "reserve_table": "restaurant bookings",
+                   "create_ticket": "device help", "lookup_manual": "device help"}
+
+
+def full_manifest() -> list[dict]:
+    """The web app's tools: the benchmark's core + unseen tools, plus everyday assistant tools."""
     manifest = json.loads((ROOT / "scenarios" / "manifest_core.json").read_text(encoding="utf-8"))
     unseen = json.loads((ROOT / "scenarios" / "T07_unseen_tool.json").read_text(encoding="utf-8"))["manifest"]
     manifest += [t for t in unseen if t["name"] not in {m["name"] for m in manifest}]
+    for t in manifest:
+        t.setdefault("category", CORE_CATEGORIES.get(t["name"], "other tasks"))
+    order = ["search_flights", "book_flight", "get_route"]  # travel first in the intro
+    extra = json.loads((ROOT / "scenarios" / "manifest_assistant.json").read_text(encoding="utf-8"))
+    manifest = sorted(manifest, key=lambda t: (t["name"] not in order, order.index(t["name"]) if t["name"] in order else 0))
+    return manifest + [t for t in extra if t["name"] not in {m["name"] for m in manifest}]
+
+
+def build() -> dict:
+    manifest = full_manifest()
     bundle = {"files": {f: (ROOT / f).read_text(encoding="utf-8") for f in FILES}, "manifest": manifest}
     out = ROOT / "public" / "py" / "bundle.json"
     out.parent.mkdir(parents=True, exist_ok=True)

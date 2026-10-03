@@ -1,8 +1,10 @@
 import { AudientRuntime } from "./runtime.js";
 import { BrowserPerception } from "./perception.js";
-import { LiveSpeech, Voice } from "./speech.js";
+import { BargeIn, LiveSpeech, Voice, speakable } from "./speech.js";
+import { LIVE_TOOLS } from "./livetools.js";
 import { I, toolIcon } from "./icons.js";
-import { plural, taskOutcome, taskTitle } from "./tasks.js";
+import { taskOutcome, taskTitle } from "./tasks.js";
+import { Amoeba } from "./amoeba.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -14,20 +16,24 @@ const rt = new AudientRuntime();
 const voice = new Voice();
 const speech = new LiveSpeech({ lang: /^en/i.test(navigator.language) ? navigator.language : "en-US" });
 const perception = new BrowserPerception({ onStatus: setHint, onResult: onPerceptionResult });
-// the octopus follows your cursor (creature.js); the agent's state sets its base pace and look
+// the glass listener (3D) reacts to your voice, your cursor and the agent's state; without WebGL the
+// 2D amoeba stands in
 const creature = $("creature");
-let octo = { setState() {}, setLevel() {} };              // until the 3D octopus has loaded (or if WebGL is missing)
-import("./octopus3d.js").then(({ Octopus3D }) => {
-  octo = new Octopus3D(creature);
-  octo.mirror($("avatar"));
-  octo.setState(creature.dataset.state);
-}).catch((err) => { console.warn("3D octopus unavailable:", err); creature.classList.add("no3d"); });
+let blob = { setState() {}, setLevel() {} };
+import("./listener.js").then(({ Listener }) => {
+  blob = new Listener(creature);
+  blob.setState(creature.dataset.state);
+}).catch((err) => {
+  console.warn("3D listener unavailable, using the 2D amoeba:", err);
+  blob = new Amoeba(creature);
+  blob.setState(creature.dataset.state);
+});
 function setCreature(st) {
   if (creature.dataset.state === st) return;
   creature.dataset.state = st;
-  octo.setState(st);
+  blob.setState(st);
 }
-const setLevel = (v) => octo.setLevel(v);
+const setLevel = (v) => blob.setLevel(v);
 const bridge = {
   analyzeFrame: async (ref) => { S.perceiving++; schedule(); try { return await perception.analyzeFrame(ref); } finally { S.perceiving--; schedule(); } },
   transcribe: async (ref) => { S.perceiving++; schedule(); try { return await perception.transcribe(ref); } finally { S.perceiving--; schedule(); } },
@@ -54,12 +60,20 @@ rt.addEventListener("input", (e) => {
   schedule();
 });
 
+// Speak the gist and leave long lists on screen: a 15-second spoken list leaves no room to reply.
+function forSpeech(text) {
+  const i = text.indexOf(" Others:");
+  if (i > 0) text = text.slice(0, i);
+  const m = text.match(/^(I found \d+ [^:]+):/);
+  return m ? `${m[1]}. The options are on screen.` : text;
+}
+
 rt.addEventListener("action", (e) => {
   const a = e.detail;
   S.trace.push({ dir: "out", ...a });
   if (a.type === "speak" || a.type === "clarify" || a.type === "final_response") {
     S.agentLine = a.text;
-    voice.speak(a.text);
+    voice.speak(forSpeech(a.text));
   }
   if (a.type === "clarify") S.lastClarify = a.text;
   if (a.type === "final_response") S.lastClarify = "";
@@ -113,6 +127,15 @@ function partial(text) {
   schedule();
 }
 
+// the big button switches hands-free listening on and off; talking over the agent interrupts it
+$("interruptBtn").addEventListener("click", () => toggleMic());
+function tick() {
+  const d = new Date();
+  $("clock").textContent = `${d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} | ${d.toLocaleDateString([], { month: "short", day: "numeric" })}`;
+}
+tick();
+setInterval(tick, 15000);
+
 $("composer").addEventListener("submit", (e) => {
   e.preventDefault();
   const v = $("sayInput").value;
@@ -135,33 +158,85 @@ async function startMeter(stream) {
       an.getFloatTimeDomainData(buf);
       let s = 0;
       for (const v of buf) s += v * v;
-      setLevel(Math.sqrt(s / buf.length) * 7);
+      const lvl = Math.min(1, Math.sqrt(s / buf.length) * 7);
+      setLevel(lvl);
+      S.level = lvl;
+      $("interruptBtn").style.setProperty("--lvl", lvl.toFixed(3));
+      onVoiceLevel(lvl);
       requestAnimationFrame(tick);
     };
     tick();
-    meter = { stop() { on = false; ctx.close(); setLevel(0); stream.getTracks().forEach((t) => t.stop()); } };
+    meter = { stop() { on = false; ctx.close(); setLevel(0); S.level = 0; stream.getTracks().forEach((t) => t.stop()); } };
   } catch { stream.getTracks().forEach((t) => t.stop()); }
 }
 function stopMeter() { if (meter) { meter.stop(); meter = null; } }
 
-$("micBtn").addEventListener("click", async () => {
+// Hands-free: once listening is on it stays on, and simply talking interrupts the agent. The mic level
+// drives a barge-in detector: when the user starts speaking over the agent, its voice pauses at once;
+// recognised words then cut it off (and cancel stale work), while noise or silence lets it carry on.
+const barge = new BargeIn();
+const RESUME_AFTER_MS = 1300;
+let resumeTimer = 0;
+function onVoiceLevel(lvl) {
+  if (barge.feed(lvl, voice.speaking && !voice.paused, performance.now()) !== "pause") return;
+  voice.pause();
+  S.heldAt = performance.now();
+  clearTimeout(resumeTimer);
+  resumeTimer = setTimeout(() => { if (voice.paused) voice.resume(); }, RESUME_AFTER_MS);
+  schedule();
+}
+function listening() { return LiveSpeech.supported() ? speech.active : !!recorder; }
+function toggleMic(on = !listening()) {
+  if (!on) {
+    if (LiveSpeech.supported()) speech.stop(); else if (recorder) toggleRecording();
+    try { localStorage.removeItem("audient.handsfree"); } catch { /* storage blocked */ }
+    return;
+  }
   if (LiveSpeech.supported()) {
-    if (speech.active) { speech.stop(); return; }
-    speech.start();
-    navigator.mediaDevices?.getUserMedia({ audio: true }).then(startMeter).catch(() => {});
-  } else {
+    if (!speech.active) {
+      speech.start();
+      navigator.mediaDevices?.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(startMeter).catch(() => {});
+    }
+    try { localStorage.setItem("audient.handsfree", "1"); } catch { /* storage blocked */ }
+  } else if (!recorder) {
     toggleRecording();
   }
-});
-speech.addEventListener("started", () => { $("micBtn").setAttribute("aria-pressed", "true"); setHint("mic", "Listening — talk over the agent any time to interrupt it."); schedule(); });
-speech.addEventListener("stopped", () => { $("micBtn").setAttribute("aria-pressed", "false"); stopMeter(); S.userSpeaking = false; S.hyp = ""; setHint("mic", ""); schedule(); });
+}
+speech.addEventListener("started", () => { setHint("mic", "Listening"); schedule(); });
+speech.addEventListener("stopped", () => { stopMeter(); S.userSpeaking = false; S.hyp = ""; setHint("mic", ""); schedule(); });
 speech.addEventListener("error", (e) => setHint("mic", `Microphone: ${e.detail.error.replaceAll("-", " ")}`));
+// Turn-taking on the mic. The browser marks a phrase "final" after a short silence, which is often just
+// a pause for thought, so a final phrase is held briefly and merged with whatever the user says next;
+// the request goes to the agent only once they have really stopped. Noise is dropped.
+const END_OF_TURN_MS = 800;
+const STOP_WORDS = new Set(["stop", "wait", "no", "hold", "cancel", "pause", "hey", "sorry", "actually", "enough"]);
+const FILLERS = new Set(["uh", "um", "umm", "hmm", "mm", "mhm", "ah", "oh", "er", "erm", "eh", "huh"]);
+let heard = "", turnTimer = 0;
+function isNoise(text, final, confidence) {
+  const words = text.toLowerCase().match(/[a-z0-9']+/g) || [];
+  if (!words.length || words.every((w) => FILLERS.has(w))) return true;
+  if (final && confidence > 0 && confidence < 0.4) return true;     // the recogniser itself isn't sure
+  return voice.speaking && words.length < 2 && !STOP_WORDS.has(words[0]); // a stray word over the agent's voice
+}
+function endTurn() {
+  clearTimeout(turnTimer);
+  const t = heard.trim();
+  heard = "";
+  if (t) say(t);
+}
 speech.addEventListener("hypothesis", (e) => {
-  const { text, final } = e.detail;
-  if (voice.speaking && voice.isEcho(text)) return; // the agent hearing itself through the speakers
-  if (final) say(text);
-  else partial(text);
+  const { text, final, confidence } = e.detail;
+  if (voice.isEcho(text) || isNoise(text, final, confidence)) return; // its own voice, or not speech at all
+  clearTimeout(turnTimer);
+  if (final) {
+    heard = `${heard} ${text}`.trim();
+    partial(heard);
+    turnTimer = setTimeout(endTurn, END_OF_TURN_MS);
+  } else {
+    partial(`${heard} ${text}`.trim());
+  }
 });
+speech.addEventListener("stopped", endTurn);
 
 let recorder = null;
 async function toggleRecording() {
@@ -182,17 +257,13 @@ async function toggleRecording() {
     const blob = new Blob(chunks, { type: recorder.mimeType });
     recorder = null;
     stopMeter();
-    $("micBtn").classList.remove("recording");
-    $("micBtn").innerHTML = I.mic;
-    $("micBtn").setAttribute("aria-pressed", "false");
+    $("interruptBtn").classList.remove("recording");
     sendAudio(blob, "a voice clip");
   };
   recorder.start();
   startMeter(stream.clone());
-  $("micBtn").classList.add("recording");
-  $("micBtn").innerHTML = I.stop;
-  $("micBtn").setAttribute("aria-pressed", "true");
-  setHint("mic", "Recording — tap again to send. Transcribed on this device.");
+  $("interruptBtn").classList.add("recording");
+  setHint("mic", "Recording. Tap again to send.");
   schedule();
 }
 
@@ -201,7 +272,7 @@ function sendAudio(blob, label) {
   const ref = perception.register(blob, "audio");
   bargeIn();
   S.media.set(ref, label);
-  S.userLine = `Sent ${label} — transcribing on this device…`;
+  S.userLine = `Sent ${label}, transcribing…`;
   rt.push({ type: "audio", path: ref, end_of_turn: true });
   schedule();
 }
@@ -253,7 +324,7 @@ function onPerceptionResult(kind, ref, res) {
   if (!S.media.has(ref)) return;
   if (kind === "frame") {
     const parts = [res.model && `model ${res.model}`, res.code && `error ${res.code}`, res.indicator && `${res.indicator.replace("_", " ")} light`].filter(Boolean);
-    setHint("vision", res.ambiguous && !parts.length ? `Couldn't read the frame — ${res.ambiguous.replaceAll("_", " ")}` : `Seen in the frame: ${parts.join(" · ") || "nothing readable"}`);
+    setHint("vision", res.ambiguous && !parts.length ? `Couldn't read the frame: ${res.ambiguous.replaceAll("_", " ")}` : `Seen in the frame: ${parts.join(" · ") || "nothing readable"}`);
   } else {
     S.userLine = res.text || "(couldn't make out the clip)";
     schedule();
@@ -282,38 +353,54 @@ function agentState() {
   if (speech.active) return "listening";
   return "idle";
 }
-const TITLES = { connecting: "Waking up", idle: "Ready when you are", listening: "Listening", thinking: "Working on it", speaking: "Speaking", interrupted: "Changing course" };
-const IDLE_LINE = "Ask for something, then change your mind while it's working.";
+const IDLE_LINE = "Hello, I'm Audient. How may I assist you today?";
 
 function render() {
   if (rt.session) S.live = rt.liveState();
   const st = agentState();
   setCreature(st);
-  $("stateLabel").textContent = TITLES[st];
   const userText = S.hyp || S.userLine;
   $("lineUser").hidden = !userText;
   $("lineUser").classList.toggle("live", !!S.hyp);
   $("lineUserText").textContent = S.hyp ? `“${S.hyp}”` : userText;
-  $("lineAgentText").textContent = st === "connecting" ? "Loading the agent into your browser…" : S.agentLine || IDLE_LINE;
+  $("lineAgentText").textContent = st === "connecting" ? "Loading…" : S.agentLine || IDLE_LINE;
+  // the big button interrupts while the agent talks or works; otherwise it starts listening
+  const on = listening();
+  $("interruptBtn").classList.toggle("live", on);
+  $("interruptBtn").setAttribute("aria-pressed", String(on));
+  $("interruptLabel").textContent = recorder ? "Tap to send" : !on ? "Tap to talk" : voice.paused ? "Go ahead" : st === "speaking" ? "Talk to interrupt" : "Listening";
   renderTasks();
-  renderTools();
-  renderStats();
-  renderSnapshot();
 }
 
-// ---- tasks: every tool call, in plain language
+// ---- tasks: every tool call, in plain language, in a panel opened from the sidebar
 const EMPTY_TASKS = $("tasks").innerHTML;
+function showTasks(open) {
+  $("tasksPanel").classList.toggle("open", open);
+  $("tasksToggle").setAttribute("aria-expanded", String(open));
+  try { localStorage.setItem("audient.tasks", open ? "1" : ""); } catch { /* storage blocked */ }
+}
+$("tasksToggle").addEventListener("click", () => showTasks(!$("tasksPanel").classList.contains("open")));
+$("tasksClose").addEventListener("click", () => { showTasks(false); $("tasksToggle").focus(); });
+addEventListener("keydown", (e) => { if (e.key === "Escape" && $("tasksPanel").classList.contains("open")) showTasks(false); });
+try { if (localStorage.getItem("audient.tasks")) showTasks(true); } catch { /* storage blocked */ }
 const PILL = {
   inflight: ["blue", I.ring, "In progress"], retry_pending: ["amber", I.clock, "Retrying"],
   done: ["green", I.check, "Completed"], cancelled: ["red", I.x, "Cancelled"], failed: ["red", I.alert, "Failed"],
 };
 function renderTasks() {
-  const calls = (S.live?.calls || []).slice().reverse();
+  // a search started early from half a sentence is only shown once the sentence confirms it
+  const calls = (S.live?.calls || []).filter((c) => !(c.speculative && (c.status === "cancelled" || S.userSpeaking))).reverse();
   const waiting = S.live?.snapshot?.status === "clarifying" && S.lastClarify;
   const now = rt.session ? rt.now() : 0;
   const sig = JSON.stringify([calls.map((c) => [c.call_id, c.status, RUNNING.has(c.status) ? Math.floor((now - c.t0) * 2) : 0]), waiting]);
   if (sig === S.taskSig) return;
   S.taskSig = sig;
+  // the sidebar badge: how many tasks, beating while one runs, amber when the agent needs an answer
+  const badge = $("tasksBadge");
+  badge.hidden = !calls.length && !waiting;
+  badge.textContent = String(calls.length + (waiting ? 1 : 0));
+  badge.classList.toggle("busy", calls.some((c) => RUNNING.has(c.status)));
+  badge.classList.toggle("needs", !!waiting);
   const box = $("tasks");
   if (!calls.length && !waiting) {
     box.innerHTML = EMPTY_TASKS;
@@ -352,79 +439,27 @@ function renderTasks() {
   });
 }
 
-let toolsDrawn = false;
-function renderTools() {
-  const box = $("toolIcons");
-  if (!toolsDrawn && rt.manifest.length) {
-    box.innerHTML = rt.manifest.map((t) => {
-      const writes = /state_modifying|write|mutating/.test(t.side_effect || "");
-      return `<span class="tool-icon${writes ? " writes" : ""}" data-tool="${esc(t.name)}" title="${esc(t.name)} — ${esc(t.description || "")}${writes ? " (changes something; done exactly once)" : ""}">${toolIcon(t.name)}</span>`;
-    }).join("");
-    toolsDrawn = true;
-  }
-  const running = new Set((S.live?.calls || []).filter((c) => RUNNING.has(c.status)).map((c) => c.tool));
-  for (const el of box.children) el.classList.toggle("active", running.has(el.dataset.tool));
-}
-
-function median(xs) {
-  const v = xs.filter((x) => x != null).sort((a, b) => a - b);
-  return v.length ? v[v.length >> 1] : null;
-}
-function renderStats() {
-  const r = S.responses.filter((x) => x != null);
-  $("sResp").textContent = r.length ? fmt(r[r.length - 1]) : "–";
-  $("sRespSub").textContent = r.length > 1 ? `median ${fmt(median(r))}` : "first spoken reply";
-  const c = S.cancels.filter((x) => x != null);
-  $("sCancel").textContent = c.length ? fmt(c[c.length - 1]) : "–";
-  $("sCancelSub").textContent = c.length ? `${plural(c.length, "interruption")} handled` : "to drop stale work";
-  const calls = S.live?.calls || [];
-  const done = calls.filter((x) => x.status === "done").length;
-  const cancelled = calls.filter((x) => x.status === "cancelled").length;
-  $("sTasks").textContent = done;
-  $("sTasksSub").textContent = calls.length ? `of ${calls.length}${cancelled ? ` · ${cancelled} cancelled` : ""}` : "completed";
-  const commits = S.live?.commits || [];
-  const keys = commits.map((x) => x.tool + JSON.stringify(x.args));
-  const dups = keys.length - new Set(keys).size;
-  $("sWrites").textContent = plural(dups, "duplicate");
-  $("sWritesSub").textContent = commits.length ? `${plural(commits.length, "change")} made, each once` : "nothing changed yet";
-  const pts = r.slice(-16).map((x) => x * 1000);
-  const svg = $("spark");
-  if (pts.length < 2) {
-    // placeholder until there are two replies to plot
-    svg.innerHTML = `<path d="M0,50 C20,50 25,38 45,40 S75,52 90,44 S110,36 120,38" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.2" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>`;
-    return;
-  }
-  const max = Math.max(...pts) * 1.15 || 1;
-  const xy = pts.map((v, i) => [(i / (pts.length - 1)) * 120, 60 - (v / max) * 52]);
-  const line = xy.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  svg.innerHTML = `<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff5fb4" stop-opacity=".55"/><stop offset="1" stop-color="#ff5fb4" stop-opacity="0"/></linearGradient></defs>` +
-    `<path d="${line} L120,64 L0,64 Z" fill="url(#sg)"/><path d="${line}" fill="none" stroke="#ff7cc0" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
-}
-
-let prevSlots = {};
-function renderSnapshot() {
-  const snap = S.live?.snapshot;
-  const box = $("snapshot");
-  if (!snap || (!snap.intent && !Object.keys(snap.slots || {}).length)) {
-    if (!box.querySelector(".snap-empty")) box.innerHTML = `<span class="snap-empty">Intent and slot values appear here as you talk.</span>`;
-    $("snapMeta").textContent = "";
-    return;
-  }
-  const chips = [`<span class="chip intent"><b>intent </b>${esc(snap.intent || "—")}</span>`, `<span class="chip"><b>status </b>${esc(snap.status)}</span>`];
-  for (const [k, v] of Object.entries(snap.slots || {})) {
-    const fresh = prevSlots[k] !== undefined && prevSlots[k] !== v;
-    chips.push(`<span class="chip${fresh ? " fresh" : ""}"><b>${esc(k)}=</b>${esc(v)}</span>`);
-  }
-  for (const [k, v] of Object.entries(snap.tentative_slots || {})) chips.push(`<span class="chip tentative" title="heard but not final yet"><b>${esc(k)}≈</b>${esc(v)}</span>`);
-  const html = chips.join("");
-  if (box.dataset.html !== html) { box.innerHTML = html; box.dataset.html = html; prevSlots = { ...(snap.slots || {}) }; }
-  $("snapMeta").textContent = `version ${snap.version}`;
-}
-
 // ------------------------------------------------------------------ session lifecycle
+// The language model (if the server has one configured) understands the user; otherwise the rule parser does.
+const model = { on: false, name: null };
+async function understand(ctx) {
+  const r = await fetch("api/understand", { method: "POST", headers: { "Content-Type": "application/json" }, body: ctx });
+  const j = await r.json();
+  if (!r.ok || !j.result) throw new Error(j.error || `HTTP ${r.status}`);
+  return JSON.stringify(j.result);
+}
+async function detectModel() {
+  try {
+    const r = await fetch("api/understand", { cache: "no-store" });
+    const j = r.ok ? await r.json() : null;
+    model.on = !!j?.configured;
+    model.name = j?.model || null;
+  } catch { model.on = false; }
+}
+
 async function newSession() {
   voice.cancel();
-  await rt.start(bridge);
+  await rt.start(bridge, model.on ? understand : null, LIVE_TOOLS);
   S = fresh();
   schedule();
 }
@@ -433,20 +468,20 @@ setInterval(() => { if (rt.session && document.visibilityState === "visible") sc
 // ------------------------------------------------------------------ guided demos (the first four get chips)
 const callRunning = (tool) => () => (S.live?.calls || []).some((c) => c.tool === tool && RUNNING.has(c.status));
 const DEMOS = [
-  { title: "Change a booking mid-way", desc: "Book for 2, then say “make it 3” while it's booking", steps: [
+  { title: "Change a booking mid-way", desc: "Book for 2, then “make it 3”", steps: [
     { say: "Book the cheapest flight from Pune to Chennai tomorrow for 2 passengers" },
     { until: callRunning("book_flight"), timeout: 9000 }, { wait: 500 },
     { say: "wait, make it 3 passengers" }] },
-  { title: "Camera + spoken correction", desc: "Error E-20 on camera, then “it's blinking blue now”", steps: [
+  { title: "Camera + spoken correction", desc: "E-20 on camera, then “blinking blue”", steps: [
     { frame: "wm3000_e20_red.png", label: "E-20 + red light" }, { wait: 500 },
     { say: "My washer shows error E-20, what should I do?" },
     { until: callRunning("lookup_manual"), timeout: 20000 }, { wait: 250 },
     { frame: "wm3000_blue_led.png", label: "Blue light" },
     { say: "wait, no, the red light stopped, now it's blinking blue twice" }] },
-  { title: "Pause mid-sentence", desc: "“…to, um…” — it waits instead of cutting in", steps: [
+  { title: "Pause mid-sentence", desc: "“…to, um…” and it waits", steps: [
     { say: "I want to fly from Mumbai to, um..." }, { wait: 600 }, { say: "Chennai on Sunday" }] },
-  { title: "Change destination while driving", desc: "“Navigate to the office… no wait, the airport”", steps: [
-    { say: "Navigate to the office" }, { until: callRunning("get_route"), timeout: 5000 }, { wait: 300 },
+  { title: "Change destination while driving", desc: "Office… no wait, the airport", steps: [
+    { say: "Navigate to Phoenix Marketcity" }, { until: callRunning("get_route"), timeout: 5000 }, { wait: 150 },
     { say: "no wait, take me to the airport instead" }] },
   { title: "Start before I finish", steps: [
     { partial: "find flights" }, { wait: 300 }, { partial: "find flights from Mumbai to Delhi" }, { wait: 300 },
@@ -479,35 +514,44 @@ async function runDemo(i) {
     }
   } finally {
     demoRunning = false;
-    if (chip) { chip.classList.remove("running"); chip.querySelector(".i").outerHTML = I.play; }
+    if (chip) { chip.classList.remove("running"); chip.querySelector(".i").outerHTML = I.send; }
     for (const b of chips) b.disabled = false;
   }
 }
-DEMOS.slice(0, 4).forEach((d, i) => {
+// The examples only start you off: a click puts the first sentence in the box (and shows the camera
+// frame it needs). You send it and do the interrupting yourself; nothing is said on your behalf.
+// The scripted runs (DEMOS / runDemo) are kept for the automated browser tests only.
+const EXAMPLES = [
+  { title: "Change an alarm mid-way", desc: "Then say “make it 6:30”", say: "Set an alarm for 6 am" },
+  { title: "Live weather", desc: "Real forecast, then “actually Delhi”", say: "What's the weather in Pune tomorrow?" },
+  { title: "Smart home", desc: "Then “actually make it 24”", say: "Set the bedroom AC to 22 degrees" },
+  { title: "Change a booking mid-way", desc: "Book for 2, then “make it 3”", say: "Book the cheapest flight from Pune to Chennai tomorrow for 2 passengers" },
+  { title: "Camera + spoken correction", desc: "E-20 on camera, then “blinking blue”", say: "My washer shows error E-20, what should I do?",
+    frame: ["wm3000_e20_red.png", "E-20 + red light"] },
+];
+EXAMPLES.forEach((d) => {
   const b = document.createElement("button");
   b.className = "demo";
-  b.innerHTML = `<span class="play">${I.play}</span><span><b>${esc(d.title)}</b><small>${esc(d.desc)}</small></span>`;
-  b.addEventListener("click", () => runDemo(i));
+  b.innerHTML = `<span class="play">${I.send}</span><span><b>${esc(d.title)}</b><small>${esc(d.desc)}</small></span>`;
+  b.addEventListener("click", async () => {
+    if (d.frame && rt.session) await sendSampleFrame(d.frame[0], d.frame[1]);
+    $("sayInput").value = d.say;
+    $("sayInput").focus();
+  });
   $("demos").appendChild(b);
-  chips.push(b);
 });
 
 // ------------------------------------------------------------------ boot
-function status(text, cls) {
-  $("status").className = `status ${cls}`;
-  $("status").querySelector("span").textContent = text;
-}
 (async () => {
   try {
-    await rt.load((t) => { $("loaderText").textContent = t; status(t, "wait"); });
+    await Promise.all([rt.load((t) => { $("loaderText").textContent = t; }), detectModel()]);
     await newSession();
     $("loader").hidden = true;
-    status("Agent online", "ok");
+    try { if (localStorage.getItem("audient.handsfree")) toggleMic(true); } catch { /* storage blocked */ }
     setTimeout(() => perception.preloadOcr(), 2500); // fetch the OCR model in the background so the first frame is fast
-    window.audient = { rt, S: () => S, say, partial, sendSampleFrame, runDemo, newSession, voice, octo: () => octo };
+    window.audient = { rt, S: () => S, say, partial, sendSampleFrame, runDemo, newSession, voice, speech, forSpeech, model, speakable, barge, toggleMic, listener: () => blob, amoeba: () => blob };
   } catch (err) {
     console.error(err);
     $("loaderText").textContent = `Couldn't start the agent: ${err.message}. Check your connection and reload.`;
-    status("Failed to start", "bad");
   }
 })();

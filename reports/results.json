@@ -11,7 +11,7 @@
     "safety": 100.0
    },
    "scenarios": 15,
-   "mean_first_response_ms": 0.99,
+   "mean_first_response_ms": 1.83,
    "duplicate_commit_scenarios": 0,
    "false_claim_scenarios": 0
   },
@@ -45,7 +45,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 5.1 ms",
+       "first response 9.6 ms",
        1.0
       ]
      ],
@@ -65,13 +65,13 @@
      ]
     },
     "first_response_ms": [
-     5.09
+     9.59
     ],
-    "mean_first_response_ms": 5.09,
+    "mean_first_response_ms": 9.59,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.006,
+    "wall_s": 0.01,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -103,7 +103,7 @@
      ],
      "interrupt": [
       [
-       "cancelled search_flights {'destination': 'Delhi'} within 15 ms (got [0.39] ms)",
+       "cancelled search_flights {'destination': 'Delhi'} within 15 ms (got [0.89] ms)",
        true
       ],
       [
@@ -117,11 +117,11 @@
      ],
      "latency": [
       [
-       "first response 0.6 ms",
+       "first response 0.9 ms",
        1.0
       ],
       [
-       "first response 0.5 ms",
+       "first response 1.0 ms",
        1.0
       ]
      ],
@@ -141,17 +141,17 @@
      ]
     },
     "first_response_ms": [
-     0.59,
-     0.49
+     0.89,
+     0.99
     ],
-    "mean_first_response_ms": 0.54,
+    "mean_first_response_ms": 0.94,
     "cancel_latency_ms": [
-     799.8
+     800.0
     ],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.04
+    "wall_s": 0.003,
+    "harness_delivery_lag_ms": 0.12
    },
    {
     "id": "T03_chained_booking",
@@ -190,7 +190,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 0.9 ms",
+       "first response 1.2 ms",
        1.0
       ]
      ],
@@ -214,13 +214,13 @@
      ]
     },
     "first_response_ms": [
-     0.89
+     1.19
     ],
-    "mean_first_response_ms": 0.89,
+    "mean_first_response_ms": 1.19,
     "cancel_latency_ms": [],
     "commits": 1,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -256,7 +256,7 @@
      ],
      "interrupt": [
       [
-       "cancelled book_flight {'passengers': 2} within 15 ms (got [0.69] ms)",
+       "cancelled book_flight {'passengers': 2} within 15 ms (got [1.09] ms)",
        true
       ],
       [
@@ -270,11 +270,11 @@
      ],
      "latency": [
       [
-       "first response 0.9 ms",
+       "first response 1.2 ms",
        1.0
       ],
       [
-       "first response 0.8 ms",
+       "first response 1.4 ms",
        1.0
       ]
      ],
@@ -298,17 +298,17 @@
      ]
     },
     "first_response_ms": [
-     0.89,
-     0.79
+     1.19,
+     1.39
     ],
-    "mean_first_response_ms": 0.84,
+    "mean_first_response_ms": 1.29,
     "cancel_latency_ms": [
      499.7
     ],
     "commits": 1,
     "false_claims": 0,
-    "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.05
+    "wall_s": 0.003,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T05_clarify_missing_slot",
@@ -349,11 +349,11 @@
      ],
      "latency": [
       [
-       "first response 0.5 ms",
+       "first response 0.7 ms",
        1.0
       ],
       [
-       "first response 0.4 ms",
+       "first response 0.6 ms",
        1.0
       ]
      ],
@@ -373,14 +373,14 @@
      ]
     },
     "first_response_ms": [
-     0.49,
-     0.39
+     0.69,
+     0.59
     ],
-    "mean_first_response_ms": 0.44,
+    "mean_first_response_ms": 0.64,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -412,7 +412,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 0.6 ms",
+       "first response 1.3 ms",
        1.0
       ]
      ],
@@ -432,13 +432,13 @@
      ]
     },
     "first_response_ms": [
-     0.59
+     1.29
     ],
-    "mean_first_response_ms": 0.59,
+    "mean_first_response_ms": 1.29,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -474,7 +474,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 0.9 ms",
+       "first response 1.4 ms",
        1.0
       ]
      ],
@@ -498,13 +498,13 @@
      ]
     },
     "first_response_ms": [
-     0.89
+     1.39
     ],
-    "mean_first_response_ms": 0.89,
+    "mean_first_response_ms": 1.39,
     "cancel_latency_ms": [],
     "commits": 1,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -528,7 +528,7 @@
      ],
      "interrupt": [
       [
-       "cancelled get_route {'destination': 'airport'} within 15 ms (got [0.39] ms)",
+       "cancelled get_route {'destination': 'airport'} within 15 ms (got [0.49] ms)",
        true
       ],
       [
@@ -542,11 +542,11 @@
      ],
      "latency": [
       [
-       "first response 0.5 ms",
+       "first response 0.7 ms",
        1.0
       ],
       [
-       "first response 0.4 ms",
+       "first response 0.5 ms",
        1.0
       ]
      ],
@@ -566,17 +566,17 @@
      ]
     },
     "first_response_ms": [
-     0.49,
-     0.39
+     0.69,
+     0.49
     ],
-    "mean_first_response_ms": 0.44,
+    "mean_first_response_ms": 0.59,
     "cancel_latency_ms": [
-     499.9
+     499.8
     ],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.04
+    "harness_delivery_lag_ms": 0.05
    },
    {
     "id": "T09_acoustic_pause_filler",
@@ -617,7 +617,7 @@
      ],
      "latency": [
       [
-       "first response 0.6 ms",
+       "first response 0.9 ms",
        1.0
       ]
      ],
@@ -637,9 +637,9 @@
      ]
     },
     "first_response_ms": [
-     0.58
+     0.88
     ],
-    "mean_first_response_ms": 0.58,
+    "mean_first_response_ms": 0.88,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
@@ -679,7 +679,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 0.7 ms",
+       "first response 1.1 ms",
        1.0
       ]
      ],
@@ -703,13 +703,13 @@
      ]
     },
     "first_response_ms": [
-     0.69
+     1.09
     ],
-    "mean_first_response_ms": 0.69,
+    "mean_first_response_ms": 1.09,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -745,7 +745,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 0.6 ms",
+       "first response 0.9 ms",
        1.0
       ]
      ],
@@ -765,14 +765,14 @@
      ]
     },
     "first_response_ms": [
-     0.55
+     0.94
     ],
-    "mean_first_response_ms": 0.55,
+    "mean_first_response_ms": 0.94,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.05
+    "harness_delivery_lag_ms": 0.06
    },
    {
     "id": "T12_in_car_destination_change",
@@ -803,7 +803,7 @@
      ],
      "interrupt": [
       [
-       "cancelled get_route {'destination': 'office'} within 15 ms (got [0.39] ms)",
+       "cancelled get_route {'destination': 'office'} within 15 ms (got [0.59] ms)",
        true
       ],
       [
@@ -817,11 +817,11 @@
      ],
      "latency": [
       [
-       "first response 0.5 ms",
+       "first response 0.7 ms",
        1.0
       ],
       [
-       "first response 0.5 ms",
+       "first response 0.8 ms",
        1.0
       ]
      ],
@@ -841,17 +841,17 @@
      ]
     },
     "first_response_ms": [
-     0.49,
-     0.49
+     0.69,
+     0.79
     ],
-    "mean_first_response_ms": 0.49,
+    "mean_first_response_ms": 0.74,
     "cancel_latency_ms": [
      499.9
     ],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.04
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.05
    },
    {
     "id": "V01_frame_error_code",
@@ -882,7 +882,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 0.7 ms",
+       "first response 2.6 ms",
        1.0
       ]
      ],
@@ -902,14 +902,14 @@
      ]
     },
     "first_response_ms": [
-     0.68
+     2.61
     ],
-    "mean_first_response_ms": 0.68,
+    "mean_first_response_ms": 2.61,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.79,
-    "harness_delivery_lag_ms": 0.02
+    "wall_s": 1.096,
+    "harness_delivery_lag_ms": 10.89
    },
    {
     "id": "V02_frame_too_dark",
@@ -942,7 +942,7 @@
      ],
      "latency": [
       [
-       "first response 0.8 ms",
+       "first response 1.5 ms",
        1.0
       ]
      ],
@@ -962,14 +962,14 @@
      ]
     },
     "first_response_ms": [
-     0.78
+     1.47
     ],
-    "mean_first_response_ms": 0.78,
+    "mean_first_response_ms": 1.47,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.022,
-    "harness_delivery_lag_ms": 0.02
+    "wall_s": 0.038,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "V03_multimodal_self_repair",
@@ -1000,7 +1000,7 @@
      ],
      "interrupt": [
       [
-       "cancelled lookup_manual {'error_code': 'E20'} within 15 ms (got [1.71] ms)",
+       "cancelled lookup_manual {'error_code': 'E20'} within 15 ms (got [2.88] ms)",
        true
       ],
       [
@@ -1014,11 +1014,11 @@
      ],
      "latency": [
       [
-       "first response 0.7 ms",
+       "first response 1.5 ms",
        1.0
       ],
       [
-       "first response 1.9 ms",
+       "first response 4.1 ms",
        1.0
       ]
      ],
@@ -1038,33 +1038,33 @@
      ]
     },
     "first_response_ms": [
-     0.68,
-     1.91
+     1.47,
+     4.08
     ],
-    "mean_first_response_ms": 1.3,
+    "mean_first_response_ms": 2.78,
     "cancel_latency_ms": [
-     605.7
+     616.6
     ],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.918,
-    "harness_delivery_lag_ms": 4.69
+    "wall_s": 1.297,
+    "harness_delivery_lag_ms": 15.22
    }
   ]
  },
  "baseline": {
   "aggregate": {
-   "weighted_score": 86.59,
-   "weighted_base_score": 75.39,
+   "weighted_score": 86.36,
+   "weighted_base_score": 75.08,
    "scenarios_all_checks_pass": 1,
    "category_pct": {
     "task": 87.8,
     "interrupt": 68.8,
-    "latency": 36.9,
+    "latency": 35.7,
     "safety": 98.3
    },
    "scenarios": 15,
-   "mean_first_response_ms": 1471.34,
+   "mean_first_response_ms": 1492.98,
    "duplicate_commit_scenarios": 1,
    "false_claim_scenarios": 0
   },
@@ -1072,8 +1072,8 @@
    {
     "id": "T01_basic_search",
     "modality": "text",
-    "score": 98.62,
-    "base": 82.19,
+    "score": 98.61,
+    "base": 82.17,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
@@ -1098,8 +1098,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1600.9 ms",
-       0.22806457142857128
+       "first response 1601.8 ms",
+       0.2275560000000001
       ]
      ],
      "safety": [
@@ -1118,20 +1118,20 @@
      ]
     },
     "first_response_ms": [
-     1600.89
+     1601.78
     ],
-    "mean_first_response_ms": 1600.89,
+    "mean_first_response_ms": 1601.78,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.01
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.02
    },
    {
     "id": "T02_barge_in_self_correction",
     "modality": "text",
-    "score": 96.22,
-    "base": 80.18,
+    "score": 96.21,
+    "base": 80.17,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
@@ -1170,12 +1170,12 @@
      ],
      "latency": [
       [
-       "first response 1601.3 ms",
-       0.227834857142857
+       "first response 1602.2 ms",
+       0.2273240000000002
       ],
       [
-       "first response 801.3 ms",
-       0.6849771428571428
+       "first response 802.2 ms",
+       0.6844640000000001
       ]
      ],
      "safety": [
@@ -1194,15 +1194,15 @@
      ]
     },
     "first_response_ms": [
-     1601.29,
-     801.29
+     1602.18,
+     802.19
     ],
-    "mean_first_response_ms": 1201.29,
+    "mean_first_response_ms": 1202.19,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.03
+    "wall_s": 0.003,
+    "harness_delivery_lag_ms": 0.05
    },
    {
     "id": "T03_chained_booking",
@@ -1241,7 +1241,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 3401.0 ms",
+       "first response 3401.6 ms",
        0.0
       ]
      ],
@@ -1265,25 +1265,25 @@
      ]
     },
     "first_response_ms": [
-     3400.99
+     3401.59
     ],
-    "mean_first_response_ms": 3400.99,
+    "mean_first_response_ms": 3401.59,
     "cancel_latency_ms": [],
     "commits": 1,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.01
    },
    {
     "id": "T04_mid_booking_adjust",
     "modality": "text",
     "score": 76.59,
-    "base": 63.83,
+    "base": 63.82,
     "quality": 1.2,
     "categories": {
      "task": 0.75,
      "interrupt": 0.667,
-     "latency": 0.2,
+     "latency": 0.199,
      "safety": 0.75
     },
     "checks": {
@@ -1321,12 +1321,12 @@
      ],
      "latency": [
       [
-       "first response 3401.4 ms",
+       "first response 3402.5 ms",
        0.0
       ],
       [
-       "first response 1301.4 ms",
-       0.39920457142857124
+       "first response 1302.5 ms",
+       0.39858285714285735
       ]
      ],
      "safety": [
@@ -1349,15 +1349,15 @@
      ]
     },
     "first_response_ms": [
-     3401.39,
-     1301.39
+     3402.48,
+     1302.48
     ],
-    "mean_first_response_ms": 2351.39,
+    "mean_first_response_ms": 2352.48,
     "cancel_latency_ms": [],
     "commits": 2,
     "false_claims": 0,
-    "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.02
+    "wall_s": 0.003,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T05_clarify_missing_slot",
@@ -1398,12 +1398,12 @@
      ],
      "latency": [
       [
-       "first response 0.7 ms",
+       "first response 1.7 ms",
        1.0
       ],
       [
-       "first response 1600.6 ms",
-       0.22823657142857157
+       "first response 1601.1 ms",
+       0.2279542857142859
       ]
      ],
      "safety": [
@@ -1422,21 +1422,21 @@
      ]
     },
     "first_response_ms": [
-     0.69,
-     1600.59
+     1.67,
+     1601.08
     ],
-    "mean_first_response_ms": 800.64,
+    "mean_first_response_ms": 801.37,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "wall_s": 0.003,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T06_retry_after_fault",
     "modality": "text",
-    "score": 22.72,
-    "base": 20.65,
+    "score": 22.71,
+    "base": 20.64,
     "quality": 1.1,
     "categories": {
      "task": 0.0,
@@ -1461,8 +1461,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1600.7 ms",
-       0.22817714285714297
+       "first response 1601.4 ms",
+       0.22779085714285707
       ]
      ],
      "safety": [
@@ -1481,20 +1481,20 @@
      ]
     },
     "first_response_ms": [
-     1600.69
+     1601.37
     ],
-    "mean_first_response_ms": 1600.69,
+    "mean_first_response_ms": 1601.37,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.01
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T07_unseen_tool",
     "modality": "text",
     "score": 100.0,
-    "base": 83.51,
+    "base": 83.5,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
@@ -1523,8 +1523,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1500.8 ms",
-       0.2852634285714286
+       "first response 1501.4 ms",
+       0.28492171428571444
       ]
      ],
      "safety": [
@@ -1547,20 +1547,20 @@
      ]
     },
     "first_response_ms": [
-     1500.79
+     1501.39
     ],
-    "mean_first_response_ms": 1500.79,
+    "mean_first_response_ms": 1501.39,
     "cancel_latency_ms": [],
     "commits": 1,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.01
    },
    {
     "id": "T08_user_cancel",
     "modality": "text",
-    "score": 88.67,
-    "base": 80.61,
+    "score": 88.66,
+    "base": 80.6,
     "quality": 1.1,
     "categories": {
      "task": 1.0,
@@ -1591,12 +1591,12 @@
      ],
      "latency": [
       [
-       "first response 1401.0 ms",
-       0.34229199999999993
+       "first response 1402.0 ms",
+       0.341724
       ],
       [
-       "first response 901.0 ms",
-       0.628004
+       "first response 902.0 ms",
+       0.6274360000000001
       ]
      ],
      "safety": [
@@ -1615,20 +1615,20 @@
      ]
     },
     "first_response_ms": [
-     1400.99,
-     900.99
+     1401.98,
+     901.99
     ],
-    "mean_first_response_ms": 1150.99,
+    "mean_first_response_ms": 1151.98,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.03
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.07
    },
    {
     "id": "T09_acoustic_pause_filler",
     "modality": "text",
-    "score": 85.11,
+    "score": 85.1,
     "base": 70.92,
     "quality": 1.2,
     "categories": {
@@ -1664,8 +1664,8 @@
      ],
      "latency": [
       [
-       "first response 1600.6 ms",
-       0.22824228571428562
+       "first response 1601.2 ms",
+       0.22791028571428573
       ]
      ],
      "safety": [
@@ -1684,20 +1684,20 @@
      ]
     },
     "first_response_ms": [
-     1600.58
+     1601.16
     ],
-    "mean_first_response_ms": 1600.58,
+    "mean_first_response_ms": 1601.16,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.02
+    "wall_s": 0.003,
+    "harness_delivery_lag_ms": 0.04
    },
    {
     "id": "T10_stutter_false_start",
     "modality": "text",
-    "score": 98.62,
-    "base": 82.19,
+    "score": 98.61,
+    "base": 82.18,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
@@ -1726,8 +1726,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1600.8 ms",
-       0.22812
+       "first response 1601.6 ms",
+       0.22766628571428582
       ]
      ],
      "safety": [
@@ -1750,14 +1750,14 @@
      ]
     },
     "first_response_ms": [
-     1600.79
+     1601.58
     ],
-    "mean_first_response_ms": 1600.79,
+    "mean_first_response_ms": 1601.58,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.01
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.02
    },
    {
     "id": "T11_speculative_prefetch",
@@ -1792,8 +1792,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1600.8 ms",
-       0.22811828571428572
+       "first response 1601.0 ms",
+       0.2280040000000001
       ]
      ],
      "safety": [
@@ -1812,9 +1812,9 @@
      ]
     },
     "first_response_ms": [
-     1600.79
+     1600.99
     ],
-    "mean_first_response_ms": 1600.79,
+    "mean_first_response_ms": 1600.99,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
@@ -1864,12 +1864,12 @@
      ],
      "latency": [
       [
-       "first response 1401.0 ms",
-       0.34229085714285723
+       "first response 1401.3 ms",
+       0.3421200000000001
       ],
       [
-       "first response 901.0 ms",
-       0.628004
+       "first response 901.3 ms",
+       0.6278331428571429
       ]
      ],
      "safety": [
@@ -1888,25 +1888,25 @@
      ]
     },
     "first_response_ms": [
-     1400.99,
-     900.99
+     1401.29,
+     901.29
     ],
-    "mean_first_response_ms": 1150.99,
+    "mean_first_response_ms": 1151.29,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "V01_frame_error_code",
     "modality": "visual",
-    "score": 100.0,
-    "base": 84.57,
+    "score": 98.67,
+    "base": 82.22,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
-     "latency": 0.331,
+     "latency": 0.23,
      "safety": 1.0
     },
     "checks": {
@@ -1927,8 +1927,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1420.0 ms",
-       0.3314325714285715
+       "first response 1598.1 ms",
+       0.2296611428571429
       ]
      ],
      "safety": [
@@ -1947,13 +1947,13 @@
      ]
     },
     "first_response_ms": [
-     1419.99
+     1598.09
     ],
-    "mean_first_response_ms": 1419.99,
+    "mean_first_response_ms": 1598.09,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.42,
+    "wall_s": 0.598,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -1987,7 +1987,7 @@
      ],
      "latency": [
       [
-       "first response 25.1 ms",
+       "first response 39.1 ms",
        1.0
       ]
      ],
@@ -2007,25 +2007,25 @@
      ]
     },
     "first_response_ms": [
-     25.09
+     39.07
     ],
-    "mean_first_response_ms": 25.09,
+    "mean_first_response_ms": 39.07,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.025,
-    "harness_delivery_lag_ms": 0.01
+    "wall_s": 0.039,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "V03_multimodal_self_repair",
     "modality": "visual",
-    "score": 61.99,
-    "base": 56.35,
+    "score": 60.82,
+    "base": 55.29,
     "quality": 1.1,
     "categories": {
      "task": 0.667,
      "interrupt": 0.333,
-     "latency": 0.535,
+     "latency": 0.464,
      "safety": 1.0
     },
     "checks": {
@@ -2059,12 +2059,12 @@
      ],
      "latency": [
       [
-       "first response 1364.2 ms",
-       0.3633182857142858
+       "first response 1488.4 ms",
+       0.2923474285714286
       ],
       [
-       "first response 764.2 ms",
-       0.7061794285714287
+       "first response 888.4 ms",
+       0.6352131428571428
       ]
      ],
      "safety": [
@@ -2083,15 +2083,15 @@
      ]
     },
     "first_response_ms": [
-     1364.19,
-     764.19
+     1488.39,
+     888.38
     ],
-    "mean_first_response_ms": 1064.19,
+    "mean_first_response_ms": 1188.38,
     "cancel_latency_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.812,
-    "harness_delivery_lag_ms": 0.06
+    "wall_s": 1.014,
+    "harness_delivery_lag_ms": 0.08
    }
   ]
  }

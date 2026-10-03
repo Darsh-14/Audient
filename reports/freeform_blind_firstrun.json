@@ -1,0 +1,314 @@
+{
+ "blind": {
+  "set": "blind",
+  "passed": 23,
+  "total": 26,
+  "cases": [
+   {
+    "id": "X1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Look for flights from Ahmedabad to Bangalore on Tuesday",
+     "SPEAK Sure. Searching flights from Ahmedabad to Bangalore on Tuesday 6 October.",
+     "CALL  search_flights {\"origin\": \"Ahmedabad\", \"destination\": \"Bangalore\", \"date\": \"2026-10-06\"}",
+     "FINAL I found 3 flights from Ahmedabad to Bangalore on Tuesday 6 October: 6E-128 (IndiGo, at 21:20, for ₹4,024); QP-407 (Akasa Air, at 18:30, for ₹3,979); UK-574 (Vistara, at 09:20, for ₹7,838)."
+    ]
+   },
+   {
+    "id": "X2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Flights to Dubai from Mumbai on 3rd November",
+     "SPEAK Sure. Searching flights from Mumbai to Dubai on Tuesday 3 November.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Dubai\", \"date\": \"2026-11-03\"}",
+     "FINAL I found 3 flights from Mumbai to Dubai on Tuesday 3 November: QP-121 (Akasa Air, at 18:15, for ₹3,893); UK-512 (Vistara, at 18:45, for ₹5,944); UK-434 (Vistara, at 09:40, for ₹5,218)."
+    ]
+   },
+   {
+    "id": "X3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Is there a flight from Nagpur to Pune tomorrow?",
+     "SPEAK Sure. Searching flights from Nagpur to Pune tomorrow.",
+     "CALL  search_flights {\"origin\": \"Nagpur\", \"destination\": \"Pune\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Nagpur to Pune tomorrow: AI-219 (Air India, at 13:25, for ₹5,727); QP-407 (Akasa Air, at 18:30, for ₹3,979); UK-574 (Vistara, at 09:20, for ₹7,838)."
+    ]
+   },
+   {
+    "id": "X4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Please book 3 seats on the cheapest flight from Delhi to Kolkata on Monday",
+     "SPEAK Sure. Booking a flight for 3.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Kolkata\", \"date\": \"2026-10-05\", \"passengers\": 3}",
+     "CALL  book_flight {\"flight_id\": \"AI-113\", \"passengers\": 3}",
+     "FINAL Done. Your flight is confirmed: BK121447 (AI-113, 3 passengers)."
+    ]
+   },
+   {
+    "id": "X5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take me to the metro station",
+     "SPEAK Sure. Getting the route to the metro station.",
+     "CALL  get_route {\"destination\": \"metro station\"}",
+     "FINAL Here you go: metro station, 43 min, 27.1 km, via Ring Road."
+    ]
+   },
+   {
+    "id": "X6",
+    "pass": false,
+    "fails": [
+     "no effective call get_route {'destination': 'Cubbon Park'}"
+    ],
+    "transcript": [
+     "USER  Show me the way to Cubbon Park",
+     "SPEAK Sure. Getting the route to the park.",
+     "CALL  get_route {\"destination\": \"park\"}",
+     "FINAL Here you go: park, 19 min, 16.7 km, via Airport Expressway."
+    ]
+   },
+   {
+    "id": "X7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  I want to reserve a table for two at Truffles tomorrow at 1 pm",
+     "SPEAK Sure. Reserving a table at Truffles for 2 tomorrow at 13:00.",
+     "CALL  reserve_table {\"restaurant\": \"Truffles\", \"party_size\": 2, \"date\": \"2026-10-03\", \"time\": \"13:00\"}",
+     "FINAL Done. Your table is confirmed: RSV-31561 (Truffles, party size 2, 3 October, at 13:00)."
+    ]
+   },
+   {
+    "id": "X8",
+    "pass": false,
+    "fails": [
+     "no commit reserve_table {'restaurant': 'Smoke House Deli', 'party_size': 5, 'date': '2026-10-02', 'time': '19:30'}"
+    ],
+    "transcript": [
+     "USER  Table for 5 at Smoke House Deli tonight at 7:30",
+     "SPEAK Sure. Reserving a table at Smoke House Delhi for 5 today at 19:30.",
+     "CALL  reserve_table {\"restaurant\": \"Smoke House Delhi\", \"party_size\": 5, \"date\": \"2026-10-02\", \"time\": \"19:30\"}",
+     "FINAL Done. Your table is confirmed: RSV-15534 (Smoke House Delhi, party size 5, 2 October, at 19:30)."
+    ]
+   },
+   {
+    "id": "X9",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  My laptop won't charge, open a support ticket",
+     "SPEAK Sure. Creating a ticket for your laptop.",
+     "CALL  create_ticket {\"device\": \"laptop\", \"issue\": \"My laptop will not charge, open a support ticket\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-88194 (open, medium priority)."
+    ]
+   },
+   {
+    "id": "X10",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  The microwave is sparking, this is an emergency",
+     "SPEAK Sure. Creating a ticket for your microwave high priority.",
+     "CALL  create_ticket {\"device\": \"microwave\", \"issue\": \"The microwave is sparking, this is an emergency\", \"priority\": \"high\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-19265 (open, high priority)."
+    ]
+   },
+   {
+    "id": "X11",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What does error E17 on WM3000 mean?",
+     "SPEAK Sure. Looking up the manual for WM3000 error E17.",
+     "CALL  lookup_manual {\"device_model\": \"WM3000\", \"error_code\": \"E17\"}",
+     "FINAL Manual section for E17: Water inlet fault. Check that the tap is open and the inlet hose is not kinked."
+    ]
+   },
+   {
+    "id": "X12",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  The WM3000 shows E20",
+     "SPEAK Sure. Looking up the manual for WM3000 error E20.",
+     "CALL  lookup_manual {\"device_model\": \"WM3000\", \"error_code\": \"E20\"}",
+     "FINAL Manual section for E20: Drain pump fault. Check the drain hose for kinks and clean the pump filter."
+    ]
+   },
+   {
+    "id": "X13",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Hello there",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table. What would you like to do?"
+    ]
+   },
+   {
+    "id": "X14",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  How can you help?",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table. What would you like to do?"
+    ]
+   },
+   {
+    "id": "X15",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a train from Delhi to Agra tomorrow",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ]
+   },
+   {
+    "id": "X16",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Call my mother",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ]
+   },
+   {
+    "id": "X17",
+    "pass": false,
+    "fails": [
+     "last reply lacks 'can't'"
+    ],
+    "transcript": [
+     "USER  Turn on the lights",
+     "CLARI What's the model number printed on the device?"
+    ]
+   },
+   {
+    "id": "X18",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Kolkata to Chennai on Sunday",
+     "SPEAK Sure. Searching flights from Kolkata to Chennai on Sunday 4 October.",
+     "CALL  search_flights {\"origin\": \"Kolkata\", \"destination\": \"Chennai\", \"date\": \"2026-10-04\"}",
+     "FINAL I found 3 flights from Kolkata to Chennai on Sunday 4 October: AI-751 (Air India, at 18:45, for ₹3,683); QP-659 (Akasa Air, at 21:30, for ₹8,695); QP-245 (Akasa Air, at 21:25, for ₹7,681).",
+     "USER  Which one is the earliest?",
+     "FINAL The earliest one is AI-751 (Air India, at 18:45, for ₹3,683)."
+    ]
+   },
+   {
+    "id": "X19",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Bangalore to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Bangalore to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Bangalore\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Bangalore to Delhi tomorrow: QP-541 (Akasa Air, at 18:15, for ₹5,753); AI-169 (Air India, at 21:40, for ₹5,525); UK-462 (Vistara, at 06:00, for ₹5,742).",
+     "USER  Book the first one for 3 people",
+     "SPEAK Sure. Booking a flight for 3.",
+     "CALL  book_flight {\"flight_id\": \"QP-541\", \"passengers\": 3}",
+     "FINAL Done. Your flight is confirmed: BK475917 (QP-541, 3 passengers)."
+    ]
+   },
+   {
+    "id": "X20",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Search flights from Pune to Mumbai tomorrow",
+     "SPEAK Sure. Searching flights from Pune to Mumbai tomorrow.",
+     "CALL  search_flights {\"origin\": \"Pune\", \"destination\": \"Mumbai\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Pune to Mumbai tomorrow: QP-513 (Akasa Air, at 21:55, for ₹5,229); AI-505 (Air India, at 13:40, for ₹5,813); QP-749 (Akasa Air, at 09:25, for ₹5,113).",
+     "USER  Navigate to the airport",
+     "SPEAK Sure. Getting the route to the airport.",
+     "CALL  get_route {\"destination\": \"airport\"}",
+     "FINAL Here you go: airport, 35 min, 22.3 km, via Ring Road.",
+     "USER  Book the cheapest of those flights for 2",
+     "SPEAK Sure. Booking a flight for 2.",
+     "CALL  book_flight {\"flight_id\": \"QP-749\", \"passengers\": 2}",
+     "FINAL Done. Your flight is confirmed: BK784921 (QP-749, 2 passengers)."
+    ]
+   },
+   {
+    "id": "X21",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Delhi to Goa on Sunday",
+     "SPEAK Sure. Searching flights from Delhi to Goa on Sunday 4 October.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-04\"}",
+     "FINAL I found 3 flights from Delhi to Goa on Sunday 4 October: UK-310 (Vistara, at 06:30, for ₹7,430); UK-456 (Vistara, at 06:05, for ₹4,896); AI-427 (Air India, at 06:35, for ₹5,087).",
+     "USER  sorry, I meant Saturday",
+     "SPEAK Got it, updating that. Searching flights from Delhi to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Delhi to Goa tomorrow: 6E-268 (IndiGo, at 21:00, for ₹6,644); QP-771 (Akasa Air, at 06:50, for ₹4,791); AI-399 (Air India, at 09:15, for ₹4,563)."
+    ]
+   },
+   {
+    "id": "X22",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take me to the office and create a ticket, my printer is jammed",
+     "SPEAK Sure. Getting the route to the office.",
+     "CALL  get_route {\"destination\": \"office\"}",
+     "FINAL Here you go: office, 51 min, 17.9 km, via Airport Expressway.",
+     "SPEAK Sure. Creating a ticket for your printer.",
+     "CALL  create_ticket {\"device\": \"printer\", \"issue\": \"create a ticket, my printer is jammed\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-05672 (open, medium priority)."
+    ]
+   },
+   {
+    "id": "X23",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Chennai tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Chennai tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Chennai\", \"date\": \"2026-10-03\"}",
+     "USER  okay",
+     "FINAL I found 3 flights from Mumbai to Chennai tomorrow: AI-191 (Air India, at 18:05, for ₹5,203); QP-239 (Akasa Air, at 21:30, for ₹6,835); UK-742 (Vistara, at 06:20, for ₹4,982)."
+    ]
+   },
+   {
+    "id": "X24",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Aaj Delhi se Jaipur ki flight dikhao",
+     "SPEAK Sure. Searching flights from Delhi to Jaipur today.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Jaipur\", \"date\": \"2026-10-02\"}",
+     "FINAL I found 3 flights from Delhi to Jaipur today: AI-667 (Air India, at 09:45, for ₹8,111); QP-127 (Akasa Air, at 18:10, for ₹4,739); AI-231 (Air India, at 13:15, for ₹7,419)."
+    ]
+   },
+   {
+    "id": "X25",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Chennai to Coimbatore on 25/10",
+     "SPEAK Sure. Searching flights from Chennai to Coimbatore on Sunday 25 October.",
+     "CALL  search_flights {\"origin\": \"Chennai\", \"destination\": \"Coimbatore\", \"date\": \"2026-10-25\"}",
+     "FINAL I found 3 flights from Chennai to Coimbatore on Sunday 25 October: 6E-744 (IndiGo, at 13:40, for ₹3,552); 6E-386 (IndiGo, at 06:15, for ₹3,586); QP-469 (Akasa Air, at 09:05, for ₹5,873)."
+    ]
+   },
+   {
+    "id": "X26",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What's the cheapest flight from Hyderabad to Goa tomorrow?",
+     "SPEAK Sure. Searching flights from Hyderabad to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Hyderabad\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Hyderabad to Goa tomorrow. The cheapest one is QP-407 (Akasa Air, at 18:30, for ₹3,979). Others: 6E-772 (IndiGo, at 09:00, for ₹4,076); QP-385 (Akasa Air, at 21:05, for ₹4,301)."
+    ]
+   }
+  ]
+ }
+}

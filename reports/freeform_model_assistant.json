@@ -1,0 +1,343 @@
+{
+ "assistant": {
+  "set": "assistant",
+  "passed": 19,
+  "total": 20,
+  "cases": [
+   {
+    "id": "S1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What's the weather in Pune tomorrow?",
+     "SPEAK One moment.",
+     "SPEAK Checking tomorrow's weather in Pune.",
+     "CALL  get_weather {\"location\": \"Pune\", \"date\": \"2026-10-03\"}",
+     "FINAL Here you go: Pune, 3 October, overcast, high 26°C, low 22°C."
+    ],
+    "model_ms": [
+     2340
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set an alarm for 6 am",
+     "SPEAK One moment.",
+     "SPEAK Sure. Setting an alarm at 06:00.",
+     "CALL  set_alarm {\"time\": \"06:00\"}",
+     "FINAL Done. Alarm set: ALM-30757 (at 06:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": [
+     "timed out or replaced by a newer turn"
+    ]
+   },
+   {
+    "id": "S3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set an alarm for 6 am, no wait, make it 6:30",
+     "SPEAK One moment.",
+     "SPEAK Sure. Setting an alarm at 06:30.",
+     "CALL  set_alarm {\"time\": \"06:30\"}",
+     "FINAL Done. Alarm set: ALM-11618 (at 06:30)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": [
+     "timed out or replaced by a newer turn"
+    ]
+   },
+   {
+    "id": "S4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set an alarm for 7 am",
+     "USER  actually 7:30",
+     "SPEAK One moment.",
+     "SPEAK Setting an alarm for 7:30 AM.",
+     "CALL  set_alarm {\"time\": \"07:30\"}",
+     "FINAL Done. Alarm set: ALM-33024 (at 07:30)."
+    ],
+    "model_ms": [
+     2576
+    ],
+    "model_failed": [],
+    "model_cancelled": [
+     "timed out or replaced by a newer turn"
+    ]
+   },
+   {
+    "id": "S5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set a timer for 10 minutes",
+     "SPEAK One moment.",
+     "SPEAK Setting a timer for ten minutes.",
+     "CALL  set_timer {\"minutes\": 10}",
+     "FINAL Done. Timer running: TMR-73624 (10 minutes)."
+    ],
+    "model_ms": [
+     2482
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S6",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Remind me to call the bank at 5",
+     "SPEAK Setting a reminder to call the bank at 5 PM.",
+     "CALL  set_reminder {\"message\": \"call the bank\", \"time\": \"17:00\", \"date\": \"2026-10-02\"}",
+     "FINAL Done. Reminder set: REM-48546 (call the bank, at 17:00, 2 October)."
+    ],
+    "model_ms": [
+     1264
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Turn on the bedroom lights",
+     "SPEAK One moment.",
+     "SPEAK Turning on the bedroom lights.",
+     "CALL  control_device {\"device\": \"bedroom lights\", \"action\": \"on\"}",
+     "FINAL Done. Your bedroom lights are on."
+    ],
+    "model_ms": [
+     2392
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S8",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Turn off the AC",
+     "SPEAK Turning off the AC.",
+     "CALL  control_device {\"device\": \"AC\", \"action\": \"off\"}",
+     "FINAL Done. Your AC is off."
+    ],
+    "model_ms": [
+     1211
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S9",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Play some Arijit Singh songs",
+     "SPEAK Playing songs by Arijit Singh.",
+     "CALL  play_music {\"query\": \"Arijit Singh\"}",
+     "FINAL Now playing Arijit Singh."
+    ],
+    "model_ms": [
+     1366
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S10",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Text Rahul that I'll be late",
+     "SPEAK Sending a message to Rahul.",
+     "CALL  send_message {\"contact\": \"Rahul\", \"message\": \"I'll be late\"}",
+     "FINAL Done. Message sent: MSG-75556 (Rahul, I'll be late)."
+    ],
+    "model_ms": [
+     1303
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S11",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Call Mom",
+     "SPEAK One moment.",
+     "SPEAK Calling Mom.",
+     "CALL  make_call {\"contact\": \"Mom\"}",
+     "FINAL Calling Mom now."
+    ],
+    "model_ms": [
+     2144
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S12",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a cab to the airport",
+     "SPEAK Booking a cab to the airport.",
+     "CALL  book_cab {\"destination\": \"airport\"}",
+     "FINAL Done. Your cab is confirmed: RIDE-88949 (airport, 7 min)."
+    ],
+    "model_ms": [
+     1197
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S13",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take a note: buy milk and eggs",
+     "SPEAK One moment.",
+     "SPEAK Saving that note for you.",
+     "CALL  take_note {\"note\": \"buy milk and eggs\"}",
+     "FINAL Done. Note saved: NOTE-59236 (buy milk and eggs)."
+    ],
+    "model_ms": [
+     2631
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S14",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Add a meeting with Priya tomorrow at 3 pm to my calendar",
+     "SPEAK One moment.",
+     "SPEAK Adding a meeting with Priya tomorrow at 3 PM.",
+     "CALL  add_calendar_event {\"summary\": \"Meeting with Priya\", \"date\": \"2026-10-03\", \"time\": \"15:00\"}",
+     "FINAL Done. Calendar event added: EVT-45515 (Meeting with Priya, 3 October, at 15:00)."
+    ],
+    "model_ms": [
+     1718
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S15",
+    "pass": false,
+    "fails": [
+     "last reply lacks 'smart home'"
+    ],
+    "transcript": [
+     "USER  hi",
+     "CLARI Hello! I can help you with flights, reminders, weather, and more. Feel free to interrupt or correct me anytime."
+    ],
+    "model_ms": [
+     1210
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S16",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Order a pizza",
+     "CLARI I can't order food, but I can help you book flights, make restaurant reservations, set reminders, and more."
+    ],
+    "model_ms": [
+     1106
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S17",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a hotel in Goa",
+     "CLARI I can't book hotels, but I can help with flights, cabs, alarms, and more."
+    ],
+    "model_ms": [
+     1282
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S18",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Who wrote the Ramayana?",
+     "CLARI The Ramayana was authored by the sage Valmiki."
+    ],
+    "model_ms": [
+     1509
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S19",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set the AC to 24 degrees",
+     "SPEAK Setting the AC to 24 degrees.",
+     "CALL  control_device {\"device\": \"AC\", \"action\": \"set\", \"value\": 24}",
+     "FINAL Done. Your AC is set to 24."
+    ],
+    "model_ms": [
+     1364
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S20",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What's the weather in Mumbai? Actually, check Delhi instead",
+     "SPEAK Checking the weather in Delhi.",
+     "CALL  get_weather {\"location\": \"Delhi\"}",
+     "FINAL Here you go: Delhi, haze, high 35°C, low 23°C, rain chance 56%."
+    ],
+    "model_ms": [
+     1269
+    ],
+    "model_failed": [],
+    "model_cancelled": []
+   }
+  ],
+  "model": {
+   "calls": 18,
+   "failed_calls": 0,
+   "cases_with_a_fallback": 0,
+   "calls_cut_off": 3,
+   "median_ms": 1366,
+   "p90_ms": 2576
+  }
+ }
+}

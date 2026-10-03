@@ -3,6 +3,7 @@
 GET  /api/run                     list the runnable (text) scenarios
 GET  /api/run?scenario=T04        run one scenario for Audient and the half-duplex baseline
 POST /api/run {"turns": [...]}    run your own timed turns against the core tool manifest
+GET/POST /api/understand          language-model understanding for the live agent (see api/understand.py)
 
 Local:  python api/run.py   ->   http://localhost:8000  (serves the web app in public/ and this API)
 Camera (V*) scenarios need OCR (numpy/onnxruntime) and are run with run_eval.py instead.
@@ -12,6 +13,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import mimetypes
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -27,6 +29,9 @@ from audient.agent import RealtimeAgent  # noqa: E402
 from audient.baseline import HalfDuplexAgent  # noqa: E402
 from audient.harness.runner import run_scenario  # noqa: E402
 from audient.harness.scorer import score  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "api"))
+import understand as llm  # noqa: E402
 
 SCEN = ROOT / "scenarios"
 MANIFEST = json.loads((SCEN / "manifest_core.json").read_text(encoding="utf-8"))
@@ -94,6 +99,8 @@ class handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         if not u.path.startswith("/api/"):  # only reached when running locally: serve the web app
             return self._static(u.path)
+        if u.path.rstrip("/") == "/api/understand":
+            return self._send(200, llm.status())
         sid = (parse_qs(u.query).get("scenario") or [""])[0]
         scns = text_scenarios()
         if not sid:
@@ -106,6 +113,8 @@ class handler(BaseHTTPRequestHandler):
         self._send(200, {"scenario": match[0], "results": run_both(match[0])})
 
     def do_POST(self) -> None:
+        if urlparse(self.path).path.rstrip("/") == "/api/understand":
+            return llm.handler.do_POST(self)
         try:
             n = min(int(self.headers.get("Content-Length") or 0), 20000)
             scn = custom_scenario(json.loads(self.rfile.read(n) or b"{}"))
@@ -115,5 +124,8 @@ class handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("Audient demo on http://localhost:8000")
-    HTTPServer(("127.0.0.1", 8000), handler).serve_forever()
+    port = int(os.environ.get("PORT", "8000"))
+    st = llm.status()
+    print(f"Audient demo on http://localhost:{port}  (language model: "
+          f"{st['model'] if st['configured'] else 'not configured, using the rule parser'})")
+    HTTPServer(("127.0.0.1", port), handler).serve_forever()

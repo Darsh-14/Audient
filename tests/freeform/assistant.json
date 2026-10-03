@@ -1,0 +1,389 @@
+{
+ "name": "assistant",
+ "manifest": "full",
+ "about": "Everyday-assistant requests against the web app's full tool set (18 tools). Written 2026-10-02 with the expanded domain. Some cases need real language understanding (contacts in 'Call Mom', 'set the AC to 24', general knowledge); the rule parser is expected to miss those and the language model to get them. Session date 2026-10-02 (a Friday).",
+ "cases": [
+  {
+   "id": "S1",
+   "turns": [
+    "What's the weather in Pune tomorrow?"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "get_weather",
+      "args": {
+       "location": "Pune",
+       "date": "2026-10-03"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S2",
+   "turns": [
+    "Set an alarm for 6 am"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "set_alarm",
+      "args": {
+       "time": "06:00"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S3",
+   "turns": [
+    "Set an alarm for 6 am, no wait, make it 6:30"
+   ],
+   "expect": {
+    "commits": {
+     "set_alarm": 1
+    },
+    "commit_args": [
+     {
+      "tool": "set_alarm",
+      "args": {
+       "time": "06:30"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S4",
+   "gap": 0.2,
+   "turns": [
+    "Set an alarm for 7 am",
+    "actually 7:30"
+   ],
+   "expect": {
+    "commits": {
+     "set_alarm": 1
+    },
+    "commit_args": [
+     {
+      "tool": "set_alarm",
+      "args": {
+       "time": "07:30"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S5",
+   "turns": [
+    "Set a timer for 10 minutes"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "set_timer",
+      "args": {
+       "minutes": 10
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S6",
+   "turns": [
+    "Remind me to call the bank at 5"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "set_reminder",
+      "args": {
+       "time": "17:00"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S7",
+   "turns": [
+    "Turn on the bedroom lights"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "control_device",
+      "args": {
+       "action": "on"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S8",
+   "turns": [
+    "Turn off the AC"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "control_device",
+      "args": {
+       "device": "ac",
+       "action": "off"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S9",
+   "turns": [
+    "Play some Arijit Singh songs"
+   ],
+   "expect": {
+    "commits": {
+     "play_music": 1
+    }
+   }
+  },
+  {
+   "id": "S10",
+   "turns": [
+    "Text Rahul that I'll be late"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "send_message",
+      "args": {
+       "contact": "Rahul"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S11",
+   "turns": [
+    "Call Mom"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "make_call",
+      "args": {
+       "contact": "Mom"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S12",
+   "turns": [
+    "Book a cab to the airport"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "book_cab",
+      "args": {
+       "destination": "airport"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S13",
+   "turns": [
+    "Take a note: buy milk and eggs"
+   ],
+   "expect": {
+    "commits": {
+     "take_note": 1
+    }
+   }
+  },
+  {
+   "id": "S14",
+   "turns": [
+    "Add a meeting with Priya tomorrow at 3 pm to my calendar"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "add_calendar_event",
+      "args": {
+       "date": "2026-10-03",
+       "time": "15:00"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S15",
+   "turns": [
+    "hi"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "smart home"
+    ]
+   }
+  },
+  {
+   "id": "S16",
+   "turns": [
+    "Order a pizza"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "S17",
+   "turns": [
+    "Book a hotel in Goa"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "can't"
+    ]
+   }
+  },
+  {
+   "id": "S18",
+   "turns": [
+    "Who wrote the Ramayana?"
+   ],
+   "expect": {
+    "no_tool": true,
+    "contains": [
+     "Valmiki"
+    ]
+   }
+  },
+  {
+   "id": "S19",
+   "turns": [
+    "Set the AC to 24 degrees"
+   ],
+   "expect": {
+    "commit_args": [
+     {
+      "tool": "control_device",
+      "args": {
+       "action": "set",
+       "value": 24
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "S20",
+   "turns": [
+    "What's the weather in Mumbai? Actually, check Delhi instead"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "get_weather",
+      "args": {
+       "location": "Delhi"
+      }
+     }
+    ],
+    "no_call_args": [
+     {
+      "tool": "get_weather",
+      "args": {
+       "location": "Mumbai"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "P1",
+   "turns": [
+    "movie theatre from here"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "find_places",
+      "args": {
+       "kind": "cinema"
+      }
+     }
+    ],
+    "contains": [
+     "nearest cinema"
+    ]
+   }
+  },
+  {
+   "id": "P2",
+   "turns": [
+    "Is there a pharmacy near Koregaon Park?"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "find_places",
+      "args": {
+       "kind": "pharmacy",
+       "near": "Koregaon Park"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "P3",
+   "turns": [
+    "Take me to the nearest hospital"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "get_route",
+      "args": {
+       "destination": "hospital"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "P4",
+   "turns": [
+    "Where is the closest ATM"
+   ],
+   "expect": {
+    "calls": [
+     {
+      "tool": "find_places",
+      "args": {
+       "kind": "atm"
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

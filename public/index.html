@@ -3,101 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Audient — the voice agent you can interrupt</title>
-<meta name="description" content="An interruptible real-time voice agent (Theme 05): talk to it, change your mind mid-task, and watch it drop stale work instantly.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%2345d4ff'/%3E%3Cstop offset='.55' stop-color='%23965cff'/%3E%3Cstop offset='1' stop-color='%23ff5fb4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%2311131a'/%3E%3Cellipse cx='16' cy='12' rx='6' ry='6.5' fill='url(%23g)'/%3E%3Cpath d='M10 17c-2 4-4 5-5 8M14 18c-1 4-1 6-3 8M18 18c1 4 1 6 3 8M22 17c2 4 4 5 5 8' stroke='url(%23g)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<title>Audient</title>
+<meta name="description" content="An interruptible real-time voice agent for Samsung PRISM Theme 05.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='8.5' fill='none' stroke='%232f7bff' stroke-width='4'/%3E%3Ccircle cx='16' cy='16' r='8.5' fill='none' stroke='%23cfe3ff' stroke-width='1.2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Exo+2:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="backdrop" aria-hidden="true"></div>
+<!-- background: a faint hex texture -->
+<div class="hud" aria-hidden="true">
+  <i class="hex hex-l"></i><i class="hex hex-r"></i>
+</div>
+
+<!-- sidebar: Tasks opens a panel listing every tool call -->
+<nav class="rail" aria-label="Sidebar">
+  <button id="tasksToggle" class="rail-btn" type="button" aria-expanded="false" aria-controls="tasksPanel">
+    <span data-icon="tasks"></span><span class="rail-label">Tasks</span><span id="tasksBadge" class="badge" hidden>0</span>
+  </button>
+</nav>
+<aside id="tasksPanel" class="drawer" aria-labelledby="tasksTitle">
+  <div class="drawer-head">
+    <h2 id="tasksTitle" class="readout-title">Tasks</h2>
+    <button id="tasksClose" class="ic-btn" type="button" aria-label="Close tasks"><span data-icon="close"></span></button>
+  </div>
+  <ul id="tasks" class="tasks">
+    <li class="tasks-empty">No tasks yet</li>
+  </ul>
+</aside>
 
 <header class="top">
-  <span class="brand"><span class="brand-mark" aria-hidden="true"></span>Audient<span class="badge">Theme 05 · Interruptible Real-Time Agents</span></span>
-  <span id="status" class="status"><i></i><span>Starting…</span></span>
+  <div class="brand">
+    <h1 class="wordmark">AU<span>DIENT</span></h1>
+    <p class="tagline">Interruptible AI Voice Agent</p>
+  </div>
+  <div class="top-right">
+    <span id="clock" class="clock"></span>
+  </div>
 </header>
 
 <main class="stage">
-  <!-- left: what the agent is doing, and how to try it -->
-  <section class="panel tasks-panel" aria-labelledby="tasksTitle">
-    <header class="panel-head">
-      <h2 id="tasksTitle">Agent Tasks</h2>
-      <p>Every tool call the agent is running for you, live</p>
-    </header>
-    <ul id="tasks" class="tasks">
-      <li class="tasks-empty"><p>No tasks yet. Here's what happens when you interrupt:</p><ol class="how"><li><b>Fast path</b> answers within milliseconds — no dead air.</li><li><b>Stale work is cancelled</b> the moment you correct yourself.</li><li><b>Slow path re-plans</b> and makes each booking exactly once.</li></ol></li>
-    </ul>
-    <h3 class="label">Try an interruption</h3>
+  <div class="side-spacer" aria-hidden="true"></div>
+
+  <!-- the agent -->
+  <section class="core">
+    <div id="creature" class="creature" data-state="connecting" title="Touch it"></div>
+  </section>
+
+  <!-- right readout: things to try -->
+  <aside class="readout right" aria-labelledby="demosTitle">
+    <h2 id="demosTitle" class="readout-title">Try saying</h2>
     <div id="demos" class="demo-list"></div>
-  </section>
+  </aside>
 
-  <!-- centre: the agent -->
-  <section class="center">
-    <div id="creature" class="creature" data-state="connecting" title="Move your cursor — it looks at you. Click to poke it.">
-      <span class="aura" aria-hidden="true"></span>
-    </div>
-    <h1 id="stateLabel" class="state-title">Waking up</h1>
-    <div class="dialogue" aria-live="polite">
-      <p id="lineUser" class="line" hidden><span class="who">You</span><span id="lineUserText"></span></p>
-      <p id="lineAgent" class="line"><span class="who">Audient</span><span id="lineAgentText">Loading the agent into your browser…</span></p>
-    </div>
-
-    <div class="input-row">
-      <form id="composer" class="composer" autocomplete="off">
-        <button type="button" id="attachBtn" class="round-ic" aria-label="Show a camera frame or send a voice clip" aria-expanded="false"><span data-icon="plus"></span></button>
-        <input id="sayInput" placeholder="Talk or type — interrupt any time…" aria-label="Message">
-        <button type="submit" class="round-ic send" aria-label="Send"><span data-icon="send"></span></button>
-      </form>
-      <button id="micBtn" class="mic" aria-pressed="false" aria-label="Talk to the agent"><span data-icon="mic"></span></button>
-
-      <div id="attachMenu" class="menu" hidden>
-        <p class="menu-title">Show the agent a camera frame</p>
-        <div id="frameGrid" class="frame-grid"></div>
-        <div class="menu-actions">
-          <label class="menu-btn"><span data-icon="image"></span>Upload image<input id="imageFile" type="file" accept="image/*" hidden></label>
-          <label class="menu-btn"><span data-icon="music"></span>Upload voice clip<input id="audioFile" type="file" accept="audio/*" hidden></label>
-        </div>
-      </div>
-    </div>
-    <p id="hint" class="hint">Tap the mic and talk, or type. Interrupt whenever you like.</p>
-  </section>
-
-  <!-- right: who the agent is and how it's doing -->
-  <section class="panel agent-panel" aria-labelledby="agentTitle">
-    <div class="agent-id">
-      <canvas id="avatar" class="avatar" width="112" height="112" aria-hidden="true"></canvas>
-      <div><h2 id="agentTitle">Interruptible Voice Agent</h2><p>Voice-native · fast &amp; slow paths · runs in your browser</p></div>
-    </div>
-
-    <h3 class="label">Tool manifest <span class="label-note"><i class="dot"></i>changes something — done exactly once</span></h3>
-    <div id="toolIcons" class="tool-icons"></div>
-
-    <h3 class="label">Theme 05 scorecard <span class="label-note">live</span></h3>
-    <div class="stats">
-      <div class="stat stat-main">
-        <span class="stat-pill">Latency · 15%</span>
-        <b id="sResp">–</b>
-        <small id="sRespSub">first spoken reply</small>
-        <svg id="spark" class="spark" viewBox="0 0 120 64" preserveAspectRatio="none" aria-hidden="true"></svg>
-      </div>
-      <div class="stat"><span>Interruption · 35%</span><b id="sCancel">–</b><small id="sCancelSub">to drop stale work</small></div>
-      <div class="stat"><span>Tasks · 40%</span><b id="sTasks">0</b><small id="sTasksSub">of 0 tasks</small></div>
-      <div class="stat stat-wide"><span>Safety · 10%</span><b id="sWrites">0 duplicates</b><small id="sWritesSub">no bookings or changes yet</small></div>
-    </div>
-
-    <h3 class="label">State snapshot <span id="snapMeta" class="label-note"></span></h3>
-    <div id="snapshot" class="snapshot"><span class="snap-empty">Intent and slot values appear here as you talk.</span></div>
-  </section>
 </main>
+
+<section class="dialogue" aria-live="polite">
+  <p id="lineAgent" class="line agent"><span class="who">Agent:</span><span id="lineAgentText">Loading…</span></p>
+  <p id="lineUser" class="line user" hidden><span class="who">User:</span><span id="lineUserText"></span></p>
+</section>
+
+<div class="actions">
+  <button id="interruptBtn" class="interrupt" type="button" aria-pressed="false"><span id="interruptLabel">Tap to talk</span><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
+
+  <div class="input-row">
+    <form id="composer" class="composer" autocomplete="off">
+      <button type="button" id="attachBtn" class="ic-btn" aria-label="Show a camera frame or send a voice clip" aria-expanded="false"><span data-icon="plus"></span></button>
+      <input id="sayInput" placeholder="Type a message" aria-label="Message">
+      <button type="submit" class="ic-btn send" aria-label="Send"><span data-icon="send"></span></button>
+    </form>
+    <div id="attachMenu" class="menu" hidden>
+      <p class="menu-title">Show the agent a camera frame</p>
+      <div id="frameGrid" class="frame-grid"></div>
+      <div class="menu-actions">
+        <label class="menu-btn"><span data-icon="image"></span>Upload image<input id="imageFile" type="file" accept="image/*" hidden></label>
+        <label class="menu-btn"><span data-icon="music"></span>Upload voice clip<input id="audioFile" type="file" accept="audio/*" hidden></label>
+      </div>
+    </div>
+  </div>
+
+  <p id="hint" class="hint"></p>
+</div>
 
 <div id="loader" class="loader" role="status">
   <div class="loader-card">
-    <div class="loader-orb" aria-hidden="true"></div>
+    <div class="loader-ring" aria-hidden="true"></div>
     <b>Waking up Audient</b>
-    <p id="loaderText">Downloading the Python runtime…</p>
-    <small>The agent runs entirely in this tab. First visit takes about 10 seconds.</small>
+    <p id="loaderText">Loading…</p>
   </div>
 </div>
 <script type="module" src="app.js"></script>

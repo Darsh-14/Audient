@@ -53,13 +53,52 @@ class BridgePerception:
         return await self._call(self._asr, ref, "asr_unavailable")
 
 
+class BridgeLLM:
+    """Adapts a language-model callable (e.g. JavaScript fetch to /api/understand) to the agent.
+
+    The callable takes the agent's context as a JSON string and returns the model's decision as a dict
+    or JSON string; any failure makes the agent fall back to its rule parser for that turn.
+    """
+
+    def __init__(self, understand: Callable[[str], Any]) -> None:
+        self._fn = understand
+
+    async def __call__(self, context: str) -> dict:
+        res = self._fn(context)
+        if hasattr(res, "__await__"):
+            res = await res
+        if hasattr(res, "to_py"):
+            res = res.to_py()
+        return json.loads(res) if isinstance(res, str) else dict(res)
+
+
+class BridgeTools:
+    """Real tool implementations supplied by the host (the browser): call(name, args JSON) -> result JSON."""
+
+    def __init__(self, call: Callable[[str, str], Any], names: list[str]) -> None:
+        self._call, self.names = call, list(names)
+
+    def handlers(self) -> dict:
+        async def run(name: str, args: dict) -> dict:
+            res = self._call(name, json.dumps(args))
+            if hasattr(res, "__await__"):
+                res = await res
+            if hasattr(res, "to_py"):
+                res = res.to_py()
+            return json.loads(res) if isinstance(res, str) else dict(res)
+        return {n: (lambda a, n=n: run(n, a)) for n in self.names}
+
+
 class LiveSession:
     def __init__(self, manifest: list[dict], on_action: Callable[[str], Any],
                  on_event: Callable[[str], Any] | None = None, perception: Any = None,
-                 session_date: dt.date | None = None, env_config: dict | None = None) -> None:
+                 session_date: dt.date | None = None, env_config: dict | None = None, llm: Any = None,
+                 tools: BridgeTools | None = None) -> None:
         self.manifest = manifest
         self.on_action, self.on_event = on_action, on_event
         self.perception, self.session_date, self.env_config = perception, session_date, env_config or {}
+        self.llm = llm
+        self.live_tools = tools
         self.trace: list[dict] = []
         self._tasks: list[asyncio.Task] = []
         self.t0 = 0.0
@@ -69,8 +108,10 @@ class LiveSession:
         self.t0 = self.loop.time()
         self.inbox: asyncio.Queue = asyncio.Queue()
         self.outbox: asyncio.Queue = asyncio.Queue()
-        self.env = MockEnv(self.manifest, self.env_config, self._deliver)
-        self.agent = RealtimeAgent(perception=self.perception, session_date=self.session_date or dt.date.today())
+        self.env = MockEnv(self.manifest, self.env_config, self._deliver,
+                           live=self.live_tools.handlers() if self.live_tools else None)
+        self.agent = RealtimeAgent(perception=self.perception, session_date=self.session_date or dt.date.today(),
+                                   llm=self.llm)
         await self.agent.warmup()
         self._tasks = [asyncio.ensure_future(self.agent.run(self.inbox, self.outbox)),
                        asyncio.ensure_future(self._pump())]

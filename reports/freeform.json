@@ -1,0 +1,1708 @@
+{
+ "assistant": {
+  "set": "assistant",
+  "passed": 23,
+  "total": 24,
+  "cases": [
+   {
+    "id": "S1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What's the weather in Pune tomorrow?",
+     "SPEAK Sure. Getting weather for Pune tomorrow.",
+     "CALL  get_weather {\"location\": \"Pune\", \"date\": \"2026-10-03\"}",
+     "FINAL Here you go: Pune, 3 October, overcast, high 26°C, low 22°C."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set an alarm for 6 am",
+     "SPEAK Sure. Setting an alarm at 06:00.",
+     "CALL  set_alarm {\"time\": \"06:00\"}",
+     "FINAL Done. Alarm set: ALM-30757 (at 06:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set an alarm for 6 am, no wait, make it 6:30",
+     "SPEAK Sure. Setting an alarm at 06:30.",
+     "CALL  set_alarm {\"time\": \"06:30\"}",
+     "FINAL Done. Alarm set: ALM-11618 (at 06:30)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set an alarm for 7 am",
+     "SPEAK Sure. Setting an alarm at 07:00.",
+     "CALL  set_alarm {\"time\": \"07:00\"}",
+     "USER  actually 7:30",
+     "CANCL call_001 (superseded_by_user_correction)",
+     "SPEAK Got it, updating that. Setting an alarm at 07:30.",
+     "CALL  set_alarm {\"time\": \"07:30\"}",
+     "FINAL Done. Alarm set: ALM-33024 (at 07:30)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set a timer for 10 minutes",
+     "SPEAK Sure. Setting a timer for 10 minutes.",
+     "CALL  set_timer {\"minutes\": 10}",
+     "FINAL Done. Timer running: TMR-73624 (10 minutes)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S6",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Remind me to call the bank at 5",
+     "SPEAK Sure. Setting a reminder at 17:00.",
+     "CALL  set_reminder {\"message\": \"call the bank at 5\", \"time\": \"17:00\"}",
+     "FINAL Done. Reminder set: REM-19192 (call the bank at 5, at 17:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Turn on the bedroom lights",
+     "SPEAK Sure. Turning your lights on.",
+     "CALL  control_device {\"device\": \"lights\", \"action\": \"on\"}",
+     "FINAL Done. Your lights are on."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S8",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Turn off the AC",
+     "SPEAK Sure. Turning your AC off.",
+     "CALL  control_device {\"device\": \"ac\", \"action\": \"off\"}",
+     "FINAL Done. Your AC is off."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S9",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Play some Arijit Singh songs",
+     "SPEAK Sure. Playing music.",
+     "CALL  play_music {\"query\": \"Arijit Singh songs\"}",
+     "FINAL Now playing Arijit Singh songs."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S10",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Text Rahul that I'll be late",
+     "SPEAK Sure. Sending a message to Rahul.",
+     "CALL  send_message {\"contact\": \"Rahul\", \"message\": \"Text Rahul that I'll be late\"}",
+     "FINAL Done. Message sent: MSG-42177 (Rahul, Text Rahul that I'll be late)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S11",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Call Mom",
+     "SPEAK Sure. Making a call to Mom.",
+     "CALL  make_call {\"contact\": \"Mom\"}",
+     "FINAL Calling Mom now."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S12",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a cab to the airport",
+     "SPEAK Sure. Booking a cab to the airport.",
+     "CALL  book_cab {\"destination\": \"airport\"}",
+     "FINAL Done. Your cab is confirmed: RIDE-88949 (airport, 7 min)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S13",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take a note: buy milk and eggs",
+     "SPEAK Sure. Taking a note.",
+     "CALL  take_note {\"note\": \"buy milk and eggs\"}",
+     "FINAL Done. Note saved: NOTE-59236 (buy milk and eggs)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S14",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Add a meeting with Priya tomorrow at 3 pm to my calendar",
+     "SPEAK Sure. Adding a calendar event tomorrow at 15:00.",
+     "CALL  add_calendar_event {\"summary\": \"Add a meeting with Priya tomorrow at 3 pm to my calendar\", \"date\": \"2026-10-03\", \"time\": \"15:00\"}",
+     "FINAL Done. Calendar event added: EVT-87251 (Add a meeting with Priya tomorrow at 3 pm to my calendar, 3 October, at 15:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S15",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  hi",
+     "CLARI Hi, I'm Audient. I can help with travel and directions, device help, restaurant bookings, the weather, places near you, alarms, timers and reminders, your calendar and notes, messages and calls, music and your smart home, and you can interrupt me any time. What would you like to do?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S16",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Order a pizza",
+     "CLARI Sorry, I can't do that with the tools I have. I can help with travel and directions, device help, restaurant bookings, the weather, places near you, alarms, timers and reminders, your calendar and notes, messages and calls, music and your smart home."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S17",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a hotel in Goa",
+     "CLARI Sorry, I can't do that with the tools I have. I can help with travel and directions, device help, restaurant bookings, the weather, places near you, alarms, timers and reminders, your calendar and notes, messages and calls, music and your smart home."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S18",
+    "pass": false,
+    "fails": [
+     "last reply lacks 'Valmiki'"
+    ],
+    "transcript": [
+     "USER  Who wrote the Ramayana?",
+     "CLARI Sorry, I can't do that with the tools I have. I can help with travel and directions, device help, restaurant bookings, the weather, places near you, alarms, timers and reminders, your calendar and notes, messages and calls, music and your smart home."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S19",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set the AC to 24 degrees",
+     "SPEAK Sure. Setting your AC to 24.",
+     "CALL  control_device {\"device\": \"ac\", \"action\": \"set\", \"value\": 24}",
+     "FINAL Done. Your AC is set to 24."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "S20",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What's the weather in Mumbai? Actually, check Delhi instead",
+     "SPEAK Sure. Getting weather for Delhi.",
+     "CALL  get_weather {\"location\": \"Delhi\"}",
+     "FINAL Here you go: Delhi, haze, high 35°C, low 23°C, rain chance 56%."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "P1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  movie theatre from here",
+     "SPEAK Sure. Looking for the nearest cinema.",
+     "CALL  find_places {\"kind\": \"cinema\"}",
+     "FINAL The nearest cinema is City Cinema, 4.5 km. Also close: Central Cinema, 4.5 km; Lakeside Cinema, 4.5 km."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "P2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Is there a pharmacy near Koregaon Park?",
+     "SPEAK Sure. Looking for the nearest pharmacy near Koregaon Park.",
+     "CALL  find_places {\"kind\": \"pharmacy\", \"near\": \"Koregaon Park\"}",
+     "FINAL The nearest pharmacy near Koregaon Park is Central Pharmacy, 0.9 km. Also close: City Pharmacy, 3.5 km; Lakeside Pharmacy, 3.6 km."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "P3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take me to the nearest hospital",
+     "SPEAK Sure. Getting the route to the hospital.",
+     "CALL  get_route {\"destination\": \"hospital\"}",
+     "FINAL Here you go: hospital, 34 min, 4.2 km, via MG Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "P4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Where is the closest ATM",
+     "SPEAK Sure. Looking for the nearest ATM.",
+     "CALL  find_places {\"kind\": \"atm\"}",
+     "FINAL The nearest ATM is City Atm, 3.3 km. Also close: Central Atm, 3.4 km; Lakeside Atm, 4.4 km."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   }
+  ]
+ },
+ "dev": {
+  "set": "dev",
+  "passed": 36,
+  "total": 36,
+  "cases": [
+   {
+    "id": "A1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find me flights from Delhi to Goa next Friday",
+     "SPEAK Sure. Searching flights from Delhi to Goa on Friday 9 October.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-09\"}",
+     "FINAL I found 3 flights from Delhi to Goa on Friday 9 October: QP-485 (Akasa Air, at 06:35, for ₹4,705); UK-400 (Vistara, at 13:25, for ₹3,848); 6E-364 (IndiGo, at 09:50, for ₹3,908)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Can you look up flights between Chennai and Hyderabad on Monday",
+     "SPEAK Sure. Searching flights from Chennai to Hyderabad on Monday 5 October.",
+     "CALL  search_flights {\"origin\": \"Chennai\", \"destination\": \"Hyderabad\", \"date\": \"2026-10-05\"}",
+     "FINAL I found 3 flights from Chennai to Hyderabad on Monday 5 October: QP-233 (Akasa Air, at 21:35, for ₹5,989); AI-477 (Air India, at 18:20, for ₹5,289); UK-322 (Vistara, at 06:20, for ₹9,122)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Mumbai to Delhi flights tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Mumbai to Delhi tomorrow: AI-751 (Air India, at 18:45, for ₹3,683); 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  I'm flying out of Pune to Goa on Saturday",
+     "SPEAK Sure. Searching flights from Pune to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Pune\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Pune to Goa tomorrow: UK-142 (Vistara, at 09:30, for ₹4,286); AI-449 (Air India, at 21:00, for ₹4,765); 6E-364 (IndiGo, at 09:50, for ₹3,908)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Indore to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Indore to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Indore\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Indore to Delhi tomorrow: AI-471 (Air India, at 18:25, for ₹4,443); AI-505 (Air India, at 13:40, for ₹5,813); 6E-476 (IndiGo, at 13:10, for ₹6,004)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A6",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Search flights from Mumbai to Kolkata on 12/10",
+     "SPEAK Sure. Searching flights from Mumbai to Kolkata on Monday 12 October.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Kolkata\", \"date\": \"2026-10-12\"}",
+     "FINAL I found 3 flights from Mumbai to Kolkata on Monday 12 October: QP-541 (Akasa Air, at 18:15, for ₹5,753); AI-757 (Air India, at 18:40, for ₹4,529); QP-525 (Akasa Air, at 21:45, for ₹6,921)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book the cheapest flight from Bangalore to Kolkata on 5 November for 2 adults",
+     "SPEAK Sure. Booking a flight for 2.",
+     "CALL  search_flights {\"origin\": \"Bangalore\", \"destination\": \"Kolkata\", \"date\": \"2026-11-05\", \"passengers\": 2}",
+     "CALL  book_flight {\"flight_id\": \"6E-100\", \"passengers\": 2}",
+     "FINAL Done. Your flight is confirmed: BK673032 (6E-100, 2 passengers)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A8",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Get me to the railway station",
+     "SPEAK Sure. Getting the route to the railway station.",
+     "CALL  get_route {\"destination\": \"railway station\"}",
+     "FINAL Here you go: railway station, 37 min, 20.5 km, via Ring Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A9",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Navigate to Phoenix Marketcity",
+     "SPEAK Sure. Getting the route to Phoenix Marketcity.",
+     "CALL  get_route {\"destination\": \"Phoenix Marketcity\"}",
+     "FINAL Here you go: Phoenix Marketcity, 14 min, 28.2 km, via MG Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A10",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Reserve a table for 2 at Toit tomorrow at 7",
+     "SPEAK Sure. Reserving a table at Toit for 2 tomorrow at 19:00.",
+     "CALL  reserve_table {\"restaurant\": \"Toit\", \"party_size\": 2, \"date\": \"2026-10-03\", \"time\": \"19:00\"}",
+     "FINAL Done. Your table is confirmed: RSV-21617 (Toit, party size 2, 3 October, at 19:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A11",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Create a ticket, my fridge is not cooling",
+     "SPEAK Sure. Creating a ticket for your fridge.",
+     "CALL  create_ticket {\"device\": \"fridge\", \"issue\": \"Create a ticket, my fridge is not cooling\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-53438 (open, medium priority)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A12",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  My AC is making a weird noise",
+     "SPEAK Sure. Creating a ticket for your AC.",
+     "CALL  create_ticket {\"device\": \"ac\", \"issue\": \"My AC is making a weird noise\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-81899 (open, medium priority)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A13",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What does error E42 mean on my WM3000",
+     "SPEAK Sure. Looking up the manual for WM3000 error E42.",
+     "CALL  lookup_manual {\"device_model\": \"WM3000\", \"error_code\": \"E42\"}",
+     "FINAL Manual section for E42: Drain pump blocked. Unplug the machine, open the filter hatch at the bottom-right and clear the drain filter, then run a Rinse & Spin cycle."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "A14",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  My dishwasher DW-500 shows error E5",
+     "SPEAK Sure. Looking up the manual for DW-500 error E5.",
+     "CALL  lookup_manual {\"device_model\": \"DW-500\", \"error_code\": \"E5\"}",
+     "FINAL I couldn't find in the documentation for DW-500, E5. Could you double-check it?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  hi",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table, and you can interrupt me any time. What would you like to do?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Who are you and what can you do?",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table, and you can interrupt me any time. What would you like to do?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What's the weather in Pune?",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Set an alarm for 6 am",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a cab to the airport",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B6",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Order a pizza",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Send a message to Mom saying I'll be late",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "B8",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What is the capital of France?",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Mumbai to Delhi tomorrow: AI-751 (Air India, at 18:45, for ₹3,683); 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052).",
+     "USER  Book the second one for 2 people",
+     "SPEAK Sure. Booking a flight for 2.",
+     "CALL  book_flight {\"flight_id\": \"6E-302\", \"passengers\": 2}",
+     "FINAL Done. Your flight is confirmed: BK953064 (6E-302, 2 passengers)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  I want to fly to Mumbai tomorrow",
+     "CLARI Where will you be departing from?",
+     "USER  From Chennai",
+     "SPEAK Sure. Searching flights from Chennai to Mumbai tomorrow.",
+     "CALL  search_flights {\"origin\": \"Chennai\", \"destination\": \"Mumbai\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Chennai to Mumbai tomorrow: UK-506 (Vistara, at 18:50, for ₹5,098); 6E-358 (IndiGo, at 09:55, for ₹9,062); QP-301 (Akasa Air, at 13:05, for ₹8,729)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Mumbai to Delhi tomorrow: AI-751 (Air India, at 18:45, for ₹3,683); 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052).",
+     "USER  What time does the cheapest one leave?",
+     "FINAL The cheapest one is AI-751 (Air India), and it leaves at 18:45."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book the cheapest flight from Pune to Goa tomorrow for 1 passenger",
+     "SPEAK Sure. Booking a flight for 1.",
+     "CALL  search_flights {\"origin\": \"Pune\", \"destination\": \"Goa\", \"date\": \"2026-10-03\", \"passengers\": 1}",
+     "CALL  book_flight {\"flight_id\": \"6E-364\", \"passengers\": 1}",
+     "FINAL Done. Your flight is confirmed: BK174712 (6E-364, 1 passenger).",
+     "USER  Actually cancel that booking",
+     "FINAL Okay, I've stopped. Note that the earlier flight was already confirmed before you asked."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a table for 4 at Olive Garden at 8 pm and find flights from Delhi to Goa tomorrow",
+     "SPEAK Sure. Reserving a table at Olive Garden for 4 at 20:00.",
+     "CALL  reserve_table {\"restaurant\": \"Olive Garden\", \"party_size\": 4, \"time\": \"20:00\"}",
+     "FINAL Done. Your table is confirmed: RSV-87595 (Olive Garden, party size 4, at 20:00).",
+     "SPEAK Sure. Searching flights from Delhi to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Delhi to Goa tomorrow: 6E-268 (IndiGo, at 21:00, for ₹6,644); QP-771 (Akasa Air, at 06:50, for ₹4,791); AI-399 (Air India, at 09:15, for ₹4,563)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C6",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Delhi to Goa tomorrow",
+     "SPEAK Sure. Searching flights from Delhi to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Delhi to Goa tomorrow: 6E-268 (IndiGo, at 21:00, for ₹6,644); QP-771 (Akasa Air, at 06:50, for ₹4,791); AI-399 (Air India, at 09:15, for ₹4,563).",
+     "USER  Take me to the airport",
+     "SPEAK Sure. Getting the route to the airport.",
+     "CALL  get_route {\"destination\": \"airport\"}",
+     "FINAL Here you go: airport, 35 min, 22.3 km, via Ring Road.",
+     "USER  Book the cheapest of those flights for 1",
+     "SPEAK Sure. Booking a flight for 1.",
+     "CALL  book_flight {\"flight_id\": \"AI-399\", \"passengers\": 1}",
+     "FINAL Done. Your flight is confirmed: BK847414 (AI-399, 1 passenger)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Delhi to Goa tomorrow",
+     "SPEAK Sure. Searching flights from Delhi to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Delhi to Goa tomorrow: 6E-268 (IndiGo, at 21:00, for ₹6,644); QP-771 (Akasa Air, at 06:50, for ₹4,791); AI-399 (Air India, at 09:15, for ₹4,563).",
+     "USER  yes"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C8",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Kal Delhi se Mumbai ki flight dikhao",
+     "SPEAK Sure. Searching flights from Delhi to Mumbai tomorrow.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Mumbai\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Delhi to Mumbai tomorrow: AI-107 (Air India, at 09:05, for ₹3,631); QP-575 (Akasa Air, at 13:30, for ₹7,123); AI-287 (Air India, at 06:55, for ₹8,467)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "C9",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Hey, so, I was wondering if maybe you could help me find a flight to Goa from Delhi this Sunday?",
+     "SPEAK Sure. Searching flights from Delhi to Goa on Sunday 4 October.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-04\"}",
+     "FINAL I found 3 flights from Delhi to Goa on Sunday 4 October: UK-310 (Vistara, at 06:30, for ₹7,430); UK-456 (Vistara, at 06:05, for ₹4,896); AI-427 (Air India, at 06:35, for ₹5,087)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "N1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Mumbai to Delhi tomorrow: AI-751 (Air India, at 18:45, for ₹3,683); 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052).",
+     "USER  hmm let me think about it",
+     "SPEAK Sure, take your time."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "N2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Mumbai to Delhi tomorrow: AI-751 (Air India, at 18:45, for ₹3,683); 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052).",
+     "USER  no that's not what I wanted",
+     "CLARI Sorry about that. What should I change?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "N3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take me to the airport",
+     "SPEAK Sure. Getting the route to the airport.",
+     "CALL  get_route {\"destination\": \"airport\"}",
+     "FINAL Here you go: airport, 35 min, 22.3 km, via Ring Road.",
+     "USER  is there traffic on the way?",
+     "CLARI Sorry, I don't have that information."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "N4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Mumbai to Delhi tomorrow: AI-751 (Air India, at 18:45, for ₹3,683); 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052).",
+     "USER  tell me more about the IndiGo one",
+     "FINAL 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "N5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Mumbai to Delhi tomorrow: AI-751 (Air India, at 18:45, for ₹3,683); 6E-302 (IndiGo, at 18:15, for ₹8,014); 6E-532 (IndiGo, at 06:50, for ₹7,052).",
+     "USER  I'd rather take a train",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   }
+  ]
+ },
+ "heldout": {
+  "set": "heldout",
+  "passed": 31,
+  "total": 31,
+  "cases": [
+   {
+    "id": "H1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Show me flights to Bangalore from Kolkata on the 15th",
+     "SPEAK Sure. Searching flights from Kolkata to Bangalore on Thursday 15 October.",
+     "CALL  search_flights {\"origin\": \"Kolkata\", \"destination\": \"Bangalore\", \"date\": \"2026-10-15\"}",
+     "FINAL I found 3 flights from Kolkata to Bangalore on Thursday 15 October: 6E-744 (IndiGo, at 13:40, for ₹3,552); 6E-722 (IndiGo, at 18:15, for ₹3,874); 6E-672 (IndiGo, at 06:30, for ₹3,672)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Any flights from Hyderabad to Jaipur this Thursday?",
+     "SPEAK Sure. Searching flights from Hyderabad to Jaipur on Thursday 8 October.",
+     "CALL  search_flights {\"origin\": \"Hyderabad\", \"destination\": \"Jaipur\", \"date\": \"2026-10-08\"}",
+     "FINAL I found 3 flights from Hyderabad to Jaipur on Thursday 8 October: QP-709 (Akasa Air, at 13:15, for ₹8,897); QP-491 (Akasa Air, at 06:30, for ₹5,551); UK-238 (Vistara, at 18:20, for ₹7,550)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  I need a flight from Lucknow to Mumbai on 20 October",
+     "SPEAK Sure. Searching flights from Lucknow to Mumbai on Tuesday 20 October.",
+     "CALL  search_flights {\"origin\": \"Lucknow\", \"destination\": \"Mumbai\", \"date\": \"2026-10-20\"}",
+     "FINAL I found 3 flights from Lucknow to Mumbai on Tuesday 20 October: AI-499 (Air India, at 13:45, for ₹4,967); 6E-274 (IndiGo, at 21:55, for ₹7,490); QP-273 (Akasa Air, at 18:45, for ₹8,205)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book me on the earliest flight from Delhi to Chennai tomorrow, just me",
+     "SPEAK Sure. Booking a flight for 1.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Chennai\", \"date\": \"2026-10-03\", \"passengers\": 1}",
+     "CALL  book_flight {\"flight_id\": \"QP-457\", \"passengers\": 1}",
+     "FINAL Done. Your flight is confirmed: BK539912 (QP-457, 1 passenger)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Bhopal to Goa on Sunday",
+     "SPEAK Sure. Searching flights from Bhopal to Goa on Sunday 4 October.",
+     "CALL  search_flights {\"origin\": \"Bhopal\", \"destination\": \"Goa\", \"date\": \"2026-10-04\"}",
+     "FINAL I found 3 flights from Bhopal to Goa on Sunday 4 October: UK-478 (Vistara, at 21:30, for ₹4,574); UK-288 (Vistara, at 09:05, for ₹7,752); QP-721 (Akasa Air, at 13:05, for ₹4,589)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H6",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Drive me to the hospital",
+     "SPEAK Sure. Getting the route to the hospital.",
+     "CALL  get_route {\"destination\": \"hospital\"}",
+     "FINAL Here you go: hospital, 34 min, 4.2 km, via MG Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  How do I get to MG Road?",
+     "SPEAK Sure. Getting the route to MG Road.",
+     "CALL  get_route {\"destination\": \"MG Road\"}",
+     "FINAL Here you go: MG Road, 14 min, 32.2 km, via Ring Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H8",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Directions to the bus stand",
+     "SPEAK Sure. Getting the route to the bus stand.",
+     "CALL  get_route {\"destination\": \"bus stand\"}",
+     "FINAL Here you go: bus stand, 38 min, 4.6 km, via Ring Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H9",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a table for six at Barbeque Nation on Saturday at 8",
+     "SPEAK Sure. Reserving a table at Barbeque Nation for 6 tomorrow at 20:00.",
+     "CALL  reserve_table {\"restaurant\": \"Barbeque Nation\", \"party_size\": 6, \"date\": \"2026-10-03\", \"time\": \"20:00\"}",
+     "FINAL Done. Your table is confirmed: RSV-68975 (Barbeque Nation, party size 6, 3 October, at 20:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H10",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Can I get a dinner reservation for 3 at Mainland China tonight at 9?",
+     "SPEAK Sure. Reserving a table at Mainland China for 3 today at 21:00.",
+     "CALL  reserve_table {\"restaurant\": \"Mainland China\", \"party_size\": 3, \"date\": \"2026-10-02\", \"time\": \"21:00\"}",
+     "FINAL Done. Your table is confirmed: RSV-72048 (Mainland China, party size 3, 2 October, at 21:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H11",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  My washing machine is leaking water, please raise a complaint",
+     "SPEAK Sure. Creating a ticket for your washing machine.",
+     "CALL  create_ticket {\"device\": \"washing machine\", \"issue\": \"My washing machine is leaking water, please raise a complaint\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-62383 (open, medium priority)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H12",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  The TV isn't turning on, it's urgent",
+     "SPEAK Sure. Creating a ticket for your TV high priority.",
+     "CALL  create_ticket {\"device\": \"tv\", \"issue\": \"The TV is not turning on, it's urgent\", \"priority\": \"high\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-09494 (open, high priority)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H13",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What does F3 mean on the AC900?",
+     "SPEAK Sure. Looking up the manual for AC900 error F3.",
+     "CALL  lookup_manual {\"device_model\": \"AC900\", \"error_code\": \"F3\"}",
+     "FINAL Manual section for F3: Outdoor unit overheating. Clean the condenser coil and ensure 50 cm clearance."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H14",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  My WM3000 has a solid red light",
+     "SPEAK Sure. Looking up the manual for WM3000 (red solid light).",
+     "CALL  lookup_manual {\"device_model\": \"WM3000\", \"indicator\": \"red_solid\"}",
+     "FINAL Manual section for red solid: Door lock engaged during a fault. Wait 2 minutes for the lock to release."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H15",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Good morning",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table, and you can interrupt me any time. What would you like to do?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H16",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What can you help me with?",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table, and you can interrupt me any time. What would you like to do?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H17",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Play some music",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H18",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a hotel in Goa for tomorrow",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H19",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Order an Uber to the office",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H20",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Remind me to call the bank at 5",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H21",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Goa on Friday",
+     "SPEAK Sure. Searching flights from Mumbai to Goa on Friday 9 October.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Goa\", \"date\": \"2026-10-09\"}",
+     "FINAL I found 3 flights from Mumbai to Goa on Friday 9 October: 6E-380 (IndiGo, at 06:20, for ₹8,740); UK-288 (Vistara, at 09:05, for ₹7,752); UK-658 (Vistara, at 18:20, for ₹9,410).",
+     "USER  Book the cheapest one for 2",
+     "SPEAK Sure. Booking a flight for 2.",
+     "CALL  book_flight {\"flight_id\": \"UK-288\", \"passengers\": 2}",
+     "FINAL Done. Your flight is confirmed: BK403254 (UK-288, 2 passengers)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H22",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Search flights from Delhi to Pune tomorrow",
+     "SPEAK Sure. Searching flights from Delhi to Pune tomorrow.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Pune\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Delhi to Pune tomorrow: QP-541 (Akasa Air, at 18:15, for ₹5,753); 6E-610 (IndiGo, at 13:55, for ₹7,778); 6E-672 (IndiGo, at 06:30, for ₹3,672).",
+     "USER  How much is the cheapest?",
+     "FINAL The cheapest one is 6E-672 (IndiGo), and it costs ₹3,672."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H23",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a table for 2 at Toit at 8 pm",
+     "SPEAK Sure. Reserving a table at Toit for 2 at 20:00.",
+     "CALL  reserve_table {\"restaurant\": \"Toit\", \"party_size\": 2, \"time\": \"20:00\"}",
+     "USER  actually make it 4 people",
+     "CANCL call_001 (superseded_by_user_correction)",
+     "SPEAK Got it, updating that. Reserving a table at Toit for 4 at 20:00.",
+     "CALL  reserve_table {\"restaurant\": \"Toit\", \"party_size\": 4, \"time\": \"20:00\"}",
+     "FINAL Done. Your table is confirmed: RSV-01985 (Toit, party size 4, at 20:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H24",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Navigate to the airport",
+     "SPEAK Sure. Getting the route to the airport.",
+     "CALL  get_route {\"destination\": \"airport\"}",
+     "FINAL Here you go: airport, 35 min, 22.3 km, via Ring Road.",
+     "USER  What's the ETA?",
+     "FINAL Your route takes about 35 min."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H25",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  I want to fly to Delhi",
+     "CLARI Where will you be departing from?",
+     "USER  from Kochi",
+     "CLARI What date should I use?",
+     "USER  next Monday",
+     "SPEAK Sure. Searching flights from Kochi to Delhi on Monday 5 October.",
+     "CALL  search_flights {\"origin\": \"Kochi\", \"destination\": \"Delhi\", \"date\": \"2026-10-05\"}",
+     "FINAL I found 3 flights from Kochi to Delhi on Monday 5 October: QP-457 (Akasa Air, at 09:15, for ₹4,181); UK-484 (Vistara, at 21:25, for ₹5,420); UK-154 (Vistara, at 09:20, for ₹5,978)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H26",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Chennai to Delhi tomorrow and take me to the airport",
+     "SPEAK Sure. Searching flights from Chennai to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Chennai\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Chennai to Delhi tomorrow: QP-625 (Akasa Air, at 06:15, for ₹7,325); AI-169 (Air India, at 21:40, for ₹5,525); QP-273 (Akasa Air, at 18:45, for ₹8,205).",
+     "SPEAK Sure. Getting the route to the airport.",
+     "CALL  get_route {\"destination\": \"airport\"}",
+     "FINAL Here you go: airport, 35 min, 22.3 km, via Ring Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H27",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book the cheapest flight from Goa to Mumbai tomorrow for 2",
+     "SPEAK Sure. Booking a flight for 2.",
+     "CALL  search_flights {\"origin\": \"Goa\", \"destination\": \"Mumbai\", \"date\": \"2026-10-03\", \"passengers\": 2}",
+     "CALL  book_flight {\"flight_id\": \"UK-546\", \"passengers\": 2}",
+     "USER  What's my booking reference?",
+     "FINAL UK-702 flight reference is UK-702; QP-659 flight reference is QP-659; UK-546 flight reference is UK-546.",
+     "FINAL Done. Your flight is confirmed: BK959879 (UK-546, 2 passengers)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H28",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Parso Mumbai se Goa ki flight",
+     "SPEAK Sure. Searching flights from Mumbai to Goa on Sunday 4 October.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Goa\", \"date\": \"2026-10-04\"}",
+     "FINAL I found 3 flights from Mumbai to Goa on Sunday 4 October: 6E-548 (IndiGo, at 21:20, for ₹5,884); QP-295 (Akasa Air, at 13:10, for ₹7,883); UK-490 (Vistara, at 21:20, for ₹6,266)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H29",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Pune to Delhi on 5/11",
+     "SPEAK Sure. Searching flights from Pune to Delhi on Thursday 5 November.",
+     "CALL  search_flights {\"origin\": \"Pune\", \"destination\": \"Delhi\", \"date\": \"2026-11-05\"}",
+     "FINAL I found 3 flights from Pune to Delhi on Thursday 5 November: AI-247 (Air India, at 09:45, for ₹6,251); QP-771 (Akasa Air, at 06:50, for ₹4,791); 6E-140 (IndiGo, at 21:10, for ₹5,716)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H30",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take me home",
+     "SPEAK Sure. Getting the route to home.",
+     "CALL  get_route {\"destination\": \"home\"}",
+     "FINAL Here you go: home, 41 min, 32.9 km, via Airport Expressway."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "H31",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Search for flights from Amritsar to Srinagar on the 10th",
+     "SPEAK Sure. Searching flights from Amritsar to Srinagar on Saturday 10 October.",
+     "CALL  search_flights {\"origin\": \"Amritsar\", \"destination\": \"Srinagar\", \"date\": \"2026-10-10\"}",
+     "FINAL I found 3 flights from Amritsar to Srinagar on Saturday 10 October: QP-485 (Akasa Air, at 06:35, for ₹4,705); 6E-442 (IndiGo, at 18:55, for ₹4,634); QP-497 (Akasa Air, at 06:25, for ₹6,397)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   }
+  ]
+ },
+ "blind": {
+  "set": "blind",
+  "passed": 26,
+  "total": 26,
+  "cases": [
+   {
+    "id": "X1",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Look for flights from Ahmedabad to Bangalore on Tuesday",
+     "SPEAK Sure. Searching flights from Ahmedabad to Bangalore on Tuesday 6 October.",
+     "CALL  search_flights {\"origin\": \"Ahmedabad\", \"destination\": \"Bangalore\", \"date\": \"2026-10-06\"}",
+     "FINAL I found 3 flights from Ahmedabad to Bangalore on Tuesday 6 October: 6E-128 (IndiGo, at 21:20, for ₹4,024); QP-407 (Akasa Air, at 18:30, for ₹3,979); UK-574 (Vistara, at 09:20, for ₹7,838)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X2",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Flights to Dubai from Mumbai on 3rd November",
+     "SPEAK Sure. Searching flights from Mumbai to Dubai on Tuesday 3 November.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Dubai\", \"date\": \"2026-11-03\"}",
+     "FINAL I found 3 flights from Mumbai to Dubai on Tuesday 3 November: QP-121 (Akasa Air, at 18:15, for ₹3,893); UK-512 (Vistara, at 18:45, for ₹5,944); UK-434 (Vistara, at 09:40, for ₹5,218)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X3",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Is there a flight from Nagpur to Pune tomorrow?",
+     "SPEAK Sure. Searching flights from Nagpur to Pune tomorrow.",
+     "CALL  search_flights {\"origin\": \"Nagpur\", \"destination\": \"Pune\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Nagpur to Pune tomorrow: AI-219 (Air India, at 13:25, for ₹5,727); QP-407 (Akasa Air, at 18:30, for ₹3,979); UK-574 (Vistara, at 09:20, for ₹7,838)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X4",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Please book 3 seats on the cheapest flight from Delhi to Kolkata on Monday",
+     "SPEAK Sure. Booking a flight for 3.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Kolkata\", \"date\": \"2026-10-05\", \"passengers\": 3}",
+     "CALL  book_flight {\"flight_id\": \"AI-113\", \"passengers\": 3}",
+     "FINAL Done. Your flight is confirmed: BK121447 (AI-113, 3 passengers)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X5",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take me to the metro station",
+     "SPEAK Sure. Getting the route to the metro station.",
+     "CALL  get_route {\"destination\": \"metro station\"}",
+     "FINAL Here you go: metro station, 43 min, 27.1 km, via Ring Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X6",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Show me the way to Cubbon Park",
+     "SPEAK Sure. Getting the route to Cubbon Park.",
+     "CALL  get_route {\"destination\": \"Cubbon Park\"}",
+     "FINAL Here you go: Cubbon Park, 26 min, 29.4 km, via MG Road."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X7",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  I want to reserve a table for two at Truffles tomorrow at 1 pm",
+     "SPEAK Sure. Reserving a table at Truffles for 2 tomorrow at 13:00.",
+     "CALL  reserve_table {\"restaurant\": \"Truffles\", \"party_size\": 2, \"date\": \"2026-10-03\", \"time\": \"13:00\"}",
+     "FINAL Done. Your table is confirmed: RSV-31561 (Truffles, party size 2, 3 October, at 13:00)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X8",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Table for 5 at Smoke House Deli tonight at 7:30",
+     "SPEAK Sure. Reserving a table at Smoke House Deli for 5 today at 19:30.",
+     "CALL  reserve_table {\"restaurant\": \"Smoke House Deli\", \"party_size\": 5, \"date\": \"2026-10-02\", \"time\": \"19:30\"}",
+     "FINAL Done. Your table is confirmed: RSV-90429 (Smoke House Deli, party size 5, 2 October, at 19:30)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X9",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  My laptop won't charge, open a support ticket",
+     "SPEAK Sure. Creating a ticket for your laptop.",
+     "CALL  create_ticket {\"device\": \"laptop\", \"issue\": \"My laptop will not charge, open a support ticket\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-88194 (open, medium priority)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X10",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  The microwave is sparking, this is an emergency",
+     "SPEAK Sure. Creating a ticket for your microwave high priority.",
+     "CALL  create_ticket {\"device\": \"microwave\", \"issue\": \"The microwave is sparking, this is an emergency\", \"priority\": \"high\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-19265 (open, high priority)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X11",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What does error E17 on WM3000 mean?",
+     "SPEAK Sure. Looking up the manual for WM3000 error E17.",
+     "CALL  lookup_manual {\"device_model\": \"WM3000\", \"error_code\": \"E17\"}",
+     "FINAL Manual section for E17: Water inlet fault. Check that the tap is open and the inlet hose is not kinked."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X12",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  The WM3000 shows E20",
+     "SPEAK Sure. Looking up the manual for WM3000 error E20.",
+     "CALL  lookup_manual {\"device_model\": \"WM3000\", \"error_code\": \"E20\"}",
+     "FINAL Manual section for E20: Drain pump fault. Check the drain hose for kinks and clean the pump filter."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X13",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Hello there",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table, and you can interrupt me any time. What would you like to do?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X14",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  How can you help?",
+     "CLARI Hi, I'm Audient. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table, and you can interrupt me any time. What would you like to do?"
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X15",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Book a train from Delhi to Agra tomorrow",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X16",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Call my mother",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X17",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Turn on the lights",
+     "CLARI Sorry, I can't do that with the tools I have. I can search flights, book a flight, create a ticket, get a route, look up a manual and reserve a table."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X18",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Kolkata to Chennai on Sunday",
+     "SPEAK Sure. Searching flights from Kolkata to Chennai on Sunday 4 October.",
+     "CALL  search_flights {\"origin\": \"Kolkata\", \"destination\": \"Chennai\", \"date\": \"2026-10-04\"}",
+     "FINAL I found 3 flights from Kolkata to Chennai on Sunday 4 October: AI-751 (Air India, at 18:45, for ₹3,683); QP-659 (Akasa Air, at 21:30, for ₹8,695); QP-245 (Akasa Air, at 21:25, for ₹7,681).",
+     "USER  Which one is the earliest?",
+     "FINAL The earliest one is AI-751 (Air India, at 18:45, for ₹3,683)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X19",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Bangalore to Delhi tomorrow",
+     "SPEAK Sure. Searching flights from Bangalore to Delhi tomorrow.",
+     "CALL  search_flights {\"origin\": \"Bangalore\", \"destination\": \"Delhi\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Bangalore to Delhi tomorrow: QP-541 (Akasa Air, at 18:15, for ₹5,753); AI-169 (Air India, at 21:40, for ₹5,525); UK-462 (Vistara, at 06:00, for ₹5,742).",
+     "USER  Book the first one for 3 people",
+     "SPEAK Sure. Booking a flight for 3.",
+     "CALL  book_flight {\"flight_id\": \"QP-541\", \"passengers\": 3}",
+     "FINAL Done. Your flight is confirmed: BK475917 (QP-541, 3 passengers)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X20",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Search flights from Pune to Mumbai tomorrow",
+     "SPEAK Sure. Searching flights from Pune to Mumbai tomorrow.",
+     "CALL  search_flights {\"origin\": \"Pune\", \"destination\": \"Mumbai\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Pune to Mumbai tomorrow: QP-513 (Akasa Air, at 21:55, for ₹5,229); AI-505 (Air India, at 13:40, for ₹5,813); QP-749 (Akasa Air, at 09:25, for ₹5,113).",
+     "USER  Navigate to the airport",
+     "SPEAK Sure. Getting the route to the airport.",
+     "CALL  get_route {\"destination\": \"airport\"}",
+     "FINAL Here you go: airport, 35 min, 22.3 km, via Ring Road.",
+     "USER  Book the cheapest of those flights for 2",
+     "SPEAK Sure. Booking a flight for 2.",
+     "CALL  book_flight {\"flight_id\": \"QP-749\", \"passengers\": 2}",
+     "FINAL Done. Your flight is confirmed: BK784921 (QP-749, 2 passengers)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X21",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Delhi to Goa on Sunday",
+     "SPEAK Sure. Searching flights from Delhi to Goa on Sunday 4 October.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-04\"}",
+     "FINAL I found 3 flights from Delhi to Goa on Sunday 4 October: UK-310 (Vistara, at 06:30, for ₹7,430); UK-456 (Vistara, at 06:05, for ₹4,896); AI-427 (Air India, at 06:35, for ₹5,087).",
+     "USER  sorry, I meant Saturday",
+     "SPEAK Got it, updating that. Searching flights from Delhi to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Delhi to Goa tomorrow: 6E-268 (IndiGo, at 21:00, for ₹6,644); QP-771 (Akasa Air, at 06:50, for ₹4,791); AI-399 (Air India, at 09:15, for ₹4,563)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X22",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Take me to the office and create a ticket, my printer is jammed",
+     "SPEAK Sure. Getting the route to the office.",
+     "CALL  get_route {\"destination\": \"office\"}",
+     "FINAL Here you go: office, 51 min, 17.9 km, via Airport Expressway.",
+     "SPEAK Sure. Creating a ticket for your printer.",
+     "CALL  create_ticket {\"device\": \"printer\", \"issue\": \"create a ticket, my printer is jammed\"}",
+     "FINAL Done. Your ticket is confirmed: TCK-05672 (open, medium priority)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X23",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Mumbai to Chennai tomorrow",
+     "SPEAK Sure. Searching flights from Mumbai to Chennai tomorrow.",
+     "CALL  search_flights {\"origin\": \"Mumbai\", \"destination\": \"Chennai\", \"date\": \"2026-10-03\"}",
+     "USER  okay",
+     "FINAL I found 3 flights from Mumbai to Chennai tomorrow: AI-191 (Air India, at 18:05, for ₹5,203); QP-239 (Akasa Air, at 21:30, for ₹6,835); UK-742 (Vistara, at 06:20, for ₹4,982)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X24",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Aaj Delhi se Jaipur ki flight dikhao",
+     "SPEAK Sure. Searching flights from Delhi to Jaipur today.",
+     "CALL  search_flights {\"origin\": \"Delhi\", \"destination\": \"Jaipur\", \"date\": \"2026-10-02\"}",
+     "FINAL I found 3 flights from Delhi to Jaipur today: AI-667 (Air India, at 09:45, for ₹8,111); QP-127 (Akasa Air, at 18:10, for ₹4,739); AI-231 (Air India, at 13:15, for ₹7,419)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X25",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  Find flights from Chennai to Coimbatore on 25/10",
+     "SPEAK Sure. Searching flights from Chennai to Coimbatore on Sunday 25 October.",
+     "CALL  search_flights {\"origin\": \"Chennai\", \"destination\": \"Coimbatore\", \"date\": \"2026-10-25\"}",
+     "FINAL I found 3 flights from Chennai to Coimbatore on Sunday 25 October: 6E-744 (IndiGo, at 13:40, for ₹3,552); 6E-386 (IndiGo, at 06:15, for ₹3,586); QP-469 (Akasa Air, at 09:05, for ₹5,873)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   },
+   {
+    "id": "X26",
+    "pass": true,
+    "fails": [],
+    "transcript": [
+     "USER  What's the cheapest flight from Hyderabad to Goa tomorrow?",
+     "SPEAK Sure. Searching flights from Hyderabad to Goa tomorrow.",
+     "CALL  search_flights {\"origin\": \"Hyderabad\", \"destination\": \"Goa\", \"date\": \"2026-10-03\"}",
+     "FINAL I found 3 flights from Hyderabad to Goa tomorrow. The cheapest one is QP-407 (Akasa Air, at 18:30, for ₹3,979). Others: 6E-772 (IndiGo, at 09:00, for ₹4,076); QP-385 (Akasa Air, at 21:05, for ₹4,301)."
+    ],
+    "model_ms": [],
+    "model_failed": [],
+    "model_cancelled": []
+   }
+  ]
+ }
+}

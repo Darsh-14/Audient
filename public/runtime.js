@@ -32,19 +32,27 @@ import audient.live
   }
 
   // perception: { analyzeFrame(ref) -> Promise<JSON string>, transcribe(ref) -> Promise<JSON string> }
-  async start(perception = {}) {
+  // understand: optional (contextJSON) -> Promise<JSON string>, the language model; null = rule parser
+  // tools: optional { name: async (args) -> result } real implementations (e.g. live weather)
+  async start(perception = {}, understand = null, tools = null) {
     if (this.session) this.stop();
     const g = this.py.globals;
     g.set("_on_action", (s) => this.dispatchEvent(new CustomEvent("action", { detail: JSON.parse(s) })));
     g.set("_on_event", (s) => this.dispatchEvent(new CustomEvent("input", { detail: JSON.parse(s) })));
     g.set("_frame", perception.analyzeFrame ? (ref) => perception.analyzeFrame(ref) : null);
     g.set("_asr", perception.transcribe ? (ref) => perception.transcribe(ref) : null);
+    g.set("_llm", understand ? (ctx) => understand(ctx) : undefined); // JS null would not arrive as Python None
+    const names = tools ? Object.keys(tools).filter((n) => this.manifest.some((t) => t.name === n)) : [];
+    g.set("_tool_names", JSON.stringify(names));
+    g.set("_tool_call", names.length ? async (name, args) => JSON.stringify(await tools[name](JSON.parse(args))) : undefined);
     g.set("_manifest", JSON.stringify(this.manifest));
     await this.py.runPythonAsync(`
 import datetime, json
-from audient.live import BridgePerception, LiveSession
+from audient.live import BridgeLLM, BridgePerception, BridgeTools, LiveSession
 _session = LiveSession(json.loads(_manifest), _on_action, _on_event,
-                       perception=BridgePerception(_frame, _asr), session_date=datetime.date.today())
+                       perception=BridgePerception(_frame, _asr), session_date=datetime.date.today(),
+                       llm=BridgeLLM(_llm) if _llm else None,
+                       tools=BridgeTools(_tool_call, json.loads(_tool_names)) if _tool_call else None)
 await _session.start()
 `);
     this.session = g.get("_session");

@@ -8,3 +8,7 @@ CLAUDE.md
 CLAUDE.local.md
 .claude/
 .mcp.json
+
+# secrets: never commit
+.env
+.env.*
