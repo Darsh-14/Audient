@@ -23,9 +23,11 @@ recording (48 kHz) ──► LiveKit room ──► Gemini Live (listens, decide
                                               │ tool call
                                               ▼
                                    Audient coordination layer (coordination.py)
-                                     • hold, then commit: a call waits until the user has paused (0.8 s);
-                                       if the user starts speaking again first, it is cancelled, never run,
-                                       and the model is told to call again with the final details
+                                     • hold, then commit: a call waits until the user has paused (2.0 s)
+                                     • defer, don't drop: if the user starts speaking again first, the call
+                                       waits; it is dropped only if they said a correction ("wait",
+                                       "actually", "instead"...) and the model issued a newer call to the
+                                       same tool; otherwise it runs as requested
                                      • never repeat: an identical call (same tool, same arguments) is not
                                        executed twice; the earlier result is returned
                                               │ only calls that run

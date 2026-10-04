@@ -63,10 +63,16 @@ INSTRUCTIONS = (
     "If the user gives you an instruction, EXECUTE THE TOOL IMMEDIATELY. ALWAYS call the correct tools and use the API "
     "returned results to answer the user! NEVER hallucinate or make up data! Do NOT answer from your internal memory. "
     # ... plus how to work with Audient's coordination layer
-    "CORRECTIONS: People pause and correct themselves mid-sentence. Act only on what the user finally asks for. "
-    "If a tool result has status 'cancelled', the user was still talking when you called it: listen to their final "
-    "words and call the tool again with the final details if it is still needed. Call each tool once per request; "
-    "never repeat a call you have already made with the same details."
+    "ACKNOWLEDGE, THEN ACT: when the user asks for something, first say a very short acknowledgment (two to five "
+    "words, for example 'Sure, checking that.') and in the same turn call the tool. The acknowledgment never replaces "
+    "the call. "
+    "NEVER ASK FOR DETAILS: if a place, item or value is vague (for example 'my house' or 'the gym'), pass the user's "
+    "own words as the value instead of asking a question. "
+    "EVERY REQUEST: the user may ask for more later in the conversation; handle each new request with the right tool, "
+    "even after you have already answered an earlier one. "
+    "CORRECTIONS: people pause and correct themselves mid-sentence. Act only on what the user finally asks for. If a "
+    "tool result has status 'cancelled', a newer request replaced it; use the newer result. Never repeat a call you "
+    "have already made with the same details."
 )
 
 
@@ -250,6 +256,7 @@ async def entrypoint(ctx: agents.JobContext):
 
     @session.on("user_input_transcribed")
     def on_user_input(msg):
+        gate.user_said(msg.transcript)  # the words the correction check listens for ("wait", "actually", ...)
         if not tracker.query_received:
             tracker.user_done_at, tracker.query_received = time.time(), True
 

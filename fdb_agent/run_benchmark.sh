@@ -79,7 +79,7 @@ import json, platform, subprocess, sys, time
 out, agent, example, judged = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1"
 jobs, gap, sample = int(sys.argv[5]), float(sys.argv[6]), int(sys.argv[7])
 import os
-settle = os.environ.get("AUDIENT_SETTLE_S", "0.8 (default)") if agent == "audient" else None
+settle = os.environ.get("AUDIENT_SETTLE_S", "2.0 (default)") if agent == "audient" else None
 git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True).stdout.strip()
 cfg = {"agent": agent, "example": example or ("sample of %d" % sample if sample else "all"), "jobs": jobs, "gap_s": gap, "audient_settle_s": settle, "tag": os.environ.get("TAG", ""), "judge": "gpt-4o (--use-llm)" if judged else "exact match (no judge)",
        "date_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "platform": platform.platform(),
