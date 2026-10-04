@@ -51,8 +51,9 @@ def load_asr_model():
 
 def selected(args):
     inputs = sorted(rtb.discover_inputs(), key=lambda x: (x[1], x[0]))
-    if args.example:
-        inputs = [x for x in inputs if x[1] == args.example]
+    if args.example:  # one scenario id, or several separated by commas
+        wanted = set(args.example.split(","))
+        inputs = [x for x in inputs if x[1] in wanted]
     elif args.sample and args.sample < len(inputs):
         # an evenly spread, deterministic subset: sorted by scenario id (grouped by domain), every k-th
         step = len(inputs) / args.sample

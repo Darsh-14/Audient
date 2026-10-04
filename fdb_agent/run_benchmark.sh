@@ -4,6 +4,7 @@
 #   bash fdb_agent/run_benchmark.sh audient              # Audient (this repo's agent), all 100 recordings
 #   bash fdb_agent/run_benchmark.sh gemini2_5            # FDB-v3's own Gemini 2.5 template, unchanged (baseline)
 #   bash fdb_agent/run_benchmark.sh audient travel_01    # one scenario only (smoke test)
+#   TAG=recheck bash fdb_agent/run_benchmark.sh audient travel_01,housing_13   # several scenarios (diagnosis)
 #   SAMPLE=30 bash fdb_agent/run_benchmark.sh audient    # quick: an evenly spread 30 of the 100 recordings
 #   TAG=settle2 AUDIENT_SETTLE_S=2.0 SAMPLE=30 bash ...   # an experiment: results go to <agent>_sample30_settle2
 #
@@ -26,7 +27,8 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 V3="$REPO/external/Full-Duplex-Bench/v3"
 PY="$REPO/external/fdb-venv/bin/python"
 [ -x "$PY" ] || PY="$REPO/external/fdb-venv/Scripts/python.exe"   # Windows layout
-OUT="$REPO/reports/fdb/$AGENT${EXAMPLE:+_$EXAMPLE}"; [ "$SAMPLE" != 0 ] && [ -z "$EXAMPLE" ] && OUT="$OUT"_sample$SAMPLE
+EX="$EXAMPLE"; [[ "$EX" == *,* ]] && EX=selected
+OUT="$REPO/reports/fdb/$AGENT${EX:+_$EX}"; [ "$SAMPLE" != 0 ] && [ -z "$EXAMPLE" ] && OUT="$OUT"_sample$SAMPLE
 OUT="$OUT${TAG:+_$TAG}"
 LOG="/tmp/agent_${AGENT}.log"
 export PYTHONUTF8=1 FDB_V3_DIR="$V3"
