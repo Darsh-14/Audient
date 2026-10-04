@@ -11,8 +11,9 @@ Run from the FDB-v3 v3/ directory (it reads .env.local there: LIVEKIT_URL, LIVEK
 LIVEKIT_API_SECRET, GOOGLE_API_KEY):
     python <repo>/fdb_agent/audient_agent.py start
 Environment: FDB_V3_DIR (default: <repo>/external/Full-Duplex-Bench/v3), AUDIENT_LIVE_MODEL, GOOGLE_VOICE,
-AUDIENT_SETTLE_S (default 0.8).
+AUDIENT_SETTLE_S (default 2.0).
 """
+import asyncio
 import json
 import logging
 import os
@@ -21,10 +22,10 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
-from livekit import agents
-from livekit.agents import Agent, AgentServer, AgentSession, llm
+from livekit import agents, rtc
+from livekit.agents import Agent, AgentServer, AgentSession, JobProcess, llm, vad
 from livekit.agents.worker import JobExecutorType
-from livekit.plugins import google  # imported on the main thread (required on Windows, harmless elsewhere)
+from livekit.plugins import google, silero  # imported on the main thread (required on Windows, harmless elsewhere)
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
@@ -99,10 +100,11 @@ class LatencyTracker:  # same measurements and log lines as FDB-v3's templates
 class AudientTools:
     """FDB-v3's 12 tools (same names, arguments and descriptions), each routed through the ToolGate."""
 
-    def __init__(self, gate: ToolGate):
-        self.gate = gate
+    def __init__(self, gate: ToolGate, room: str):
+        self.gate, self.room = gate, room
 
     async def _run(self, name, **args):
+        logging.info("AUDIENT call issued room=%s %s %s", self.room, name, json.dumps(args))
         return json.dumps(await self.gate.call(name, args))
 
     # ── Travel & Identity
@@ -221,7 +223,44 @@ class AudientTools:
 
 # One process per conversation, as LiveKit already does on Linux (on Windows it defaults to threads): a native
 # crash in one conversation then cannot take the worker or the next conversation down with it.
-server = AgentServer(job_executor_type=JobExecutorType.PROCESS, num_idle_processes=1)
+def prewarm(proc: JobProcess):
+    proc.userdata["vad"] = silero.VAD.load()  # loaded once per process, before a conversation starts
+
+
+server = AgentServer(job_executor_type=JobExecutorType.PROCESS, num_idle_processes=1, setup_fnc=prewarm)
+
+
+async def listen_for_user_speech(ctx: agents.JobContext, model: vad.VAD, gate: ToolGate, room: str):
+    """Drive the ToolGate from the user's own audio. LiveKit's Gemini plugin (1.8.4) cannot be used for this: it
+    reports 'user started speaking' whenever Gemini starts a reply and 'stopped' only when that reply is done, so
+    a call made inside a reply looked like a call made while the user was talking and was held until MAX_HOLD_S
+    (seen in 18 silent recordings of the full run)."""
+    participant = await ctx.wait_for_participant()
+    track = None
+    while track is None:
+        track = next((p.track for p in participant.track_publications.values()
+                      if p.track is not None and p.kind == rtc.TrackKind.KIND_AUDIO), None)
+        if track is None:
+            await asyncio.sleep(0.05)
+    stream, frames = model.stream(), rtc.AudioStream.from_track(track=track, sample_rate=16000, num_channels=1)
+
+    async def feed():
+        async for ev in frames:
+            stream.push_frame(ev.frame)
+
+    feeder = asyncio.create_task(feed())
+    try:
+        async for ev in stream:
+            if ev.type == vad.VADEventType.START_OF_SPEECH:
+                gate.user_started()
+                logging.info("AUDIENT user speech start room=%s", room)
+            elif ev.type == vad.VADEventType.END_OF_SPEECH:
+                gate.user_stopped()
+                logging.info("AUDIENT user speech end room=%s", room)
+    finally:
+        feeder.cancel()
+        await frames.aclose()
+        await stream.aclose()
 
 
 @server.rtc_session()
@@ -239,20 +278,14 @@ async def entrypoint(ctx: agents.JobContext):
                                                        "timestamp_start": t0, "timestamp_end": t1}}) + "\n")
 
     gate = ToolGate(execute, log, settle_s=SETTLE)
-    tools = llm.find_function_tools(AudientTools(gate))
+    tools = llm.find_function_tools(AudientTools(gate, room))
     # Turn-taking stays with Gemini's server-side voice activity detection, as in FDB-v3's template: LiveKit's
     # Gemini plugin (1.8.4) does not yet support pipeline-driven turns ("commit_audio is not supported"; tried and
-    # reverted). Its speech start/stop events still drive the ToolGate's hold-then-commit rule.
+    # reverted). The ToolGate is driven by a separate local voice activity detector (listen_for_user_speech),
+    # which only observes the user's audio and changes nothing in the session.
     session = AgentSession(llm=google.realtime.RealtimeModel(model=MODEL, voice=os.getenv("GOOGLE_VOICE", "Puck")),
                            tools=tools)
-
-    @session.on("user_state_changed")
-    def on_user_state(ev):
-        if ev.new_state == "speaking":
-            gate.user_started()
-        else:
-            gate.user_stopped()
-        logging.info("AUDIENT user_state=%s", ev.new_state)
+    listener = asyncio.create_task(listen_for_user_speech(ctx, ctx.proc.userdata["vad"], gate, room))
 
     @session.on("user_input_transcribed")
     def on_user_input(msg):
@@ -269,6 +302,7 @@ async def entrypoint(ctx: agents.JobContext):
 
     @session.on("close")
     def on_close(ev):
+        listener.cancel()
         logging.info("AUDIENT gate stats room=%s %s", room, json.dumps(gate.stats))
 
     with open(HEARTBEAT_LOG, "a") as f:
