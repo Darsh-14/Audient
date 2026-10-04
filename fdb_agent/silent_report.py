@@ -39,23 +39,49 @@ def tool_calls(run: Path):
     return calls
 
 
-def gate_stats(run: Path):
-    gates = {}
+def when(entry):
+    """Unix time of a JSON log line, if it has one."""
+    t = entry.get("timestamp") or entry.get("time") if isinstance(entry, dict) else None
+    if isinstance(t, (int, float)):
+        return float(t)
+    if isinstance(t, str):
+        try:
+            from datetime import datetime
+            return datetime.fromisoformat(t.replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            return None
+    return None
+
+
+def agent_log(run: Path):
+    """Per room: the layer's counters, and the agent's own events (calls issued, user speech start/end) and
+    warnings/errors, each with its time when the log line carries one."""
+    gates, events = {}, defaultdict(list)
     log = run / "agent.log"
     if log.exists():
-        for line in open(log, encoding="utf-8", errors="ignore"):
+        for raw in open(log, encoding="utf-8", errors="ignore"):
             try:
-                line = json.loads(line).get("message", "")
+                entry = json.loads(raw)
+                line, level = entry.get("message", ""), str(entry.get("level", ""))
             except ValueError:
-                pass
+                entry, line, level = None, raw, ""
             m = re.search(r"gate stats room=(eval-[0-9a-f]+) (\{[^}]*\})", line)
             if m:
                 gates[m.group(1)] = m.group(2)
-    return gates
+                continue
+            m = re.search(r"AUDIENT (call issued|user speech start|user speech end) room=(eval-[0-9a-f]+) ?(\w*)", line)
+            if m:
+                events[m.group(2)].append((when(entry), f"{m.group(1)} {m.group(3)}".strip()))
+                continue
+            m = re.search(r"eval-[0-9a-f]+", raw)
+            if m and (level.upper() in ("WARNING", "ERROR", "CRITICAL") or re.search(r"\b(ERROR|WARNING|Traceback)\b", raw)):
+                events[m.group(0)].append((when(entry), "!! " + line.strip()[:150]))
+    return gates, events
 
 
 def main(a: Path, b: Path = None):
-    ra, calls, gates = recordings(a), tool_calls(a), gate_stats(a)
+    ra, calls = recordings(a), tool_calls(a)
+    gates, events = agent_log(a)
     rb = recordings(b) if b else {}
     quiet = [k for k, (res, _) in ra.items() if silent(res)]
     print(f"{a.name}: {len(quiet)} silent of {len(ra)}" +
@@ -77,6 +103,13 @@ def main(a: Path, b: Path = None):
               f"ready {att[-1].get('agent_ready_after_start_s') if att else '?'}s, attempts {len(att)}{other}")
         print(f"   calls run: {', '.join(when)}")
         print(f"   layer: {gates.get(room, '?')}")
+        for t, what in events.get(room, []):
+            at = f"{t - start:6.1f}s" if t and start else "     ?"
+            if what.startswith("!!") or not what.startswith("user speech"):
+                print(f"   {at} {what}")
+        speech = [t - start for t, w in events.get(room, []) if w.startswith("user speech end") and t and start]
+        n = sum(w.startswith("user speech") for _, w in events.get(room, []))
+        print(f"   voice detector: {n} events" + (f", last end of speech at {speech[-1]:.1f}s" if speech else ""))
 
 
 if __name__ == "__main__":
