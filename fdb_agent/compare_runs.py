@@ -26,9 +26,16 @@ def load(run: Path):
     log = run / "agent.log"
     if log.exists():
         for line in open(log, encoding="utf-8", errors="ignore"):
+            try:  # the agent logs JSON lines; the counters are inside the message text
+                line = json.loads(line).get("message", "")
+            except ValueError:
+                pass
             m = re.search(r"gate stats room=(eval-[0-9a-f]+) (\{[^}]*\})", line)
             if m:
-                gates[m.group(1)] = json.loads(m.group(2))
+                try:
+                    gates[m.group(1)] = json.loads(m.group(2))
+                except ValueError:
+                    gates[m.group(1)] = m.group(2)
     return passes, calls, rooms, results, gates
 
 
