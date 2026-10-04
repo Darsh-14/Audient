@@ -4,7 +4,8 @@ A realtime speech model decides to call a tool as soon as it thinks the user has
 during a pause in the middle of a sentence ("flights to Milan on June 1st... well, wait, actually June 3rd").
 Three rules keep the actions that reach the backend correct:
 
-  * hold, then commit: a call runs only after the user has been quiet for a settle time (2.0 s by default;
+  * hold, then commit: a call runs once the user has been quiet for a settle time (2.0 s by default, counted
+    from when they stopped speaking, so later steps in a chain run at once;
     pauses inside a sentence in FDB-v3's recordings last 1.6-3.2 s, and 0.8 s let premature calls through).
   * defer, don't drop: if the user starts speaking again before a held call runs, the call waits until they
     have finished. It is then dropped only if it was replaced: the user said a correction phrase ("no",
@@ -126,7 +127,9 @@ class ToolGate:
             if deferred and self._corrected_since(issued) and self._replaced_since(name, issued):
                 self.stats["cancelled"] += 1
                 return dict(REPLACED)
-            quiet_since = max(issued, self.last_stop)
+            # quiet is counted from when the user last stopped speaking, not from when the call was issued: a call
+            # made long after the user finished (a later step in a chain) runs at once; one made in a pause waits
+            quiet_since = self.last_stop
             quiet = not self.speaking and now - quiet_since >= self.settle_s
             if quiet and deferred and self._corrected_since(issued):
                 # the user corrected something: give the model a moment to issue the replacement

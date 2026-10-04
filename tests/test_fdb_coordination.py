@@ -39,11 +39,24 @@ class Sim:
         return ToolGate(execute, lambda *a: None, clock=self.clock, sleep=self.sleep, **kw)
 
 
-def test_a_call_runs_once_the_user_has_been_quiet_for_the_settle_time():
+def test_a_call_made_right_after_the_user_stops_waits_for_the_settle_time():
     s = Sim()
     g = s.gate()
+    g.user_started()
+    g.user_stopped()  # the user has just finished speaking
     r = asyncio.run(g.call("search_flights", {"destination": "Tokyo", "date": "July 15"}))
     assert r["status"] == "success" and len(s.executed) == 1 and 2.0 <= s.executed[0][2] < 2.1
+
+
+def test_a_later_step_in_a_chain_runs_at_once_when_the_user_finished_long_ago():
+    """3-tool chains: the user stopped 6 s ago; the model's third call must not wait another 2 s."""
+    s = Sim()
+    g = s.gate()
+    g.user_started()
+    g.user_stopped()
+    s.t = 6.0
+    asyncio.run(g.call("book_flight", {"passenger_name": "Casey Lee"}))
+    assert s.executed[0][2] < 6.1
 
 
 def test_a_corrected_premature_call_is_replaced_and_never_runs():
@@ -52,6 +65,7 @@ def test_a_corrected_premature_call_is_replaced_and_never_runs():
     g = s.gate()
 
     async def scene():
+        g.user_started(); g.user_stopped()  # the user has just paused mid-request
         first = asyncio.ensure_future(g.call("search_flights", {"destination": "Milan", "date": "June 1"}))
         await asyncio.sleep(0)  # the first call is issued at t=0, during the user's pause
         s.events = [(0.8, g.user_started), (1.6, lambda: g.user_said("well, wait, but actually, June 3rd")),
@@ -71,6 +85,7 @@ def test_a_call_the_user_talked_over_without_correcting_it_still_runs():
     g = s.gate()
 
     async def scene():
+        g.user_started(); g.user_stopped()  # the user has just paused mid-request
         s.events = [(0.5, g.user_started), (1.0, lambda: g.user_said("and also, um, add item X1 to my cart")),
                     (4.0, g.user_stopped)]
         return await g.call("track_order", {"order_id": "GG5"})
@@ -86,6 +101,7 @@ def test_two_different_calls_to_one_tool_without_a_correction_both_run():
     g = s.gate()
 
     async def scene():
+        g.user_started(); g.user_stopped()  # the user has just paused mid-request
         a = asyncio.ensure_future(g.call("track_order", {"order_id": "A1"}))
         await asyncio.sleep(0)
         s.events = [(0.5, g.user_started), (0.8, lambda: g.user_said("um, and B2 as well")), (2.0, g.user_stopped)]
@@ -103,6 +119,7 @@ def test_a_correction_without_a_replacement_call_still_runs_the_original():
     g = s.gate()
 
     async def scene():
+        g.user_started(); g.user_stopped()  # the user has just paused mid-request
         s.events = [(0.5, g.user_started), (0.9, lambda: g.user_said("no, sorry, that's right")), (1.5, g.user_stopped)]
         return await g.call("get_card_benefits", {"card_type": "platinum"})
 
