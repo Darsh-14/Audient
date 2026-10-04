@@ -3,9 +3,11 @@
 
 Same speech model as FDB-v3's gemini2_5 template (Gemini 2.5 Flash native audio over the Live API, via
 LiveKit), plus Audient's coordination layer (fdb_agent/coordination.py) between the model and the tools:
-calls made while the user is still mid-sentence are held and cancelled if the user goes on, and an identical
-call is never executed twice. Tool names, arguments, the mock backends (FDB-v3's mock_apis.py) and the call
-log format are FDB-v3's, so its runner and scorers work unchanged.
+a call made while the user is still mid-sentence waits until they finish, is dropped only if they corrected it
+and the model replaced it, and an identical call is never executed twice. A local voice activity detector on the
+user's audio drives the layer, and when the model drops its reply to a completed call, the agent asks for it. Tool names, arguments,
+the mock backends (FDB-v3's mock_apis.py) and the call log format are FDB-v3's, so its runner and scorers work
+unchanged.
 
 Run from the FDB-v3 v3/ directory (it reads .env.local there: LIVEKIT_URL, LIVEKIT_API_KEY,
 LIVEKIT_API_SECRET, GOOGLE_API_KEY):
@@ -47,6 +49,7 @@ if "--latency" in sys.argv:  # same option as FDB-v3's templates
 registry = MockAPIRegistry(latency_profile=LATENCY_PROFILE)
 MODEL = os.getenv("AUDIENT_LIVE_MODEL", "gemini-2.5-flash-native-audio-preview-12-2025")
 SETTLE = float(os.getenv("AUDIENT_SETTLE_S", SETTLE_S))
+NUDGE_AFTER_S = 1.5  # a call ran, the agent went back to listening without a word: ask for the reply this long after
 TOOL_LOG = "/tmp/agent_tool_calls.log"      # FDB-v3's runner reads these two files
 HEARTBEAT_LOG = "/tmp/agent_heartbeat.log"
 tool = llm.function_tool
@@ -271,8 +274,11 @@ async def entrypoint(ctx: agents.JobContext):
     def execute(name, args):
         return registry.call(name, **args)
 
+    reply = {"ran_at": 0.0, "spoke_at": 0.0, "nudged_for": 0.0, "agent": "initializing"}
+
     def log(name, args, t0, t1):  # only calls that actually run reach the backend and the log
         tracker.tool_start_at, tracker.tool_end_at = tracker.tool_start_at or t0, t1
+        reply["ran_at"] = t1
         with open(TOOL_LOG, "a") as f:
             f.write(json.dumps({"room": room, "call": {"function": name, "args": args,
                                                        "timestamp_start": t0, "timestamp_end": t1}}) + "\n")
@@ -295,14 +301,37 @@ async def entrypoint(ctx: agents.JobContext):
 
     @session.on("agent_state_changed")
     def on_agent_state(ev):
+        reply["agent"] = ev.new_state
+        if ev.new_state == "speaking":
+            reply["spoke_at"] = time.time()
         if ev.new_state == "speaking" and tracker.query_received and not tracker.agent_start_at:
             tracker.agent_start_at = time.time()
             tracker.log_breakdown(room)
             tracker.reset()
 
+    async def reply_after_tools():
+        """Never leave a completed action unanswered. Gemini Live cancels a tool call when it thinks the user
+        interrupted its turn ("server cancelled tool calls"), and then ignores that call's result, even when the
+        call ran because the user had not changed the request. LiveKit then marks the result as needing no reply
+        and the agent goes back to listening in silence. When that happens (a call ran, nothing was said since, the
+        agent is listening and the user is quiet), ask the model once to tell the user the result."""
+        while True:
+            await asyncio.sleep(0.2)
+            ran = reply["ran_at"]
+            if (ran and ran > reply["spoke_at"] and ran > reply["nudged_for"] and reply["agent"] == "listening"
+                    and not gate.speaking and gate.clock() - gate.last_stop >= 1.0
+                    and time.time() - ran >= NUDGE_AFTER_S):
+                reply["nudged_for"] = ran
+                logging.info("AUDIENT reply nudge room=%s", room)
+                session.generate_reply(instructions="Briefly tell the user the result of what you just did, "
+                                                    "using the tool results you already have.")
+
+    nudger = asyncio.create_task(reply_after_tools())
+
     @session.on("close")
     def on_close(ev):
         listener.cancel()
+        nudger.cancel()
         logging.info("AUDIENT gate stats room=%s %s", room, json.dumps(gate.stats))
 
     with open(HEARTBEAT_LOG, "a") as f:

@@ -76,7 +76,11 @@ Full runs of all 100 recordings on GitHub Codespaces (arguments compared exactly
   `silent_report.py` showed why: LiveKit's Gemini plugin (1.8.4) reports user speech start when Gemini starts a
   reply and stop only when the reply ends, so calls made inside a reply were held up to `MAX_HOLD_S` (20 s). The
   layer is now driven by a Silero voice activity detector that only listens to the user's audio
-  (`listen_for_user_speech` in `audient_agent.py`); on one recording that had been silent the agent now replies.
+  (`listen_for_user_speech` in `audient_agent.py`). Re-running the 24 recordings of the 16 scenarios that had been
+  silent: 18 replied (before: 6). Of the 6 still silent, 3 were Gemini Live server errors (1011 "deadline expired",
+  1007), 1 had Gemini call its tools only after the recording ended, and 2 were calls Gemini cancelled itself
+  ("server cancelled tool calls") and then never answered; for those the agent now asks the model once for the
+  reply (`reply_after_tools`). That selection was chosen because it failed, so it is a check, not a score.
 * Turn-taking itself stays with Gemini's server-side detection, as in the baseline: LiveKit's Gemini plugin does
   not support pipeline-driven turns (`commit_audio`; tried and reverted). The model sometimes picks a wrong date or
   year, and exact-match scoring fails on format differences (for example `"3000"` vs `3000`) that the judge accepts.

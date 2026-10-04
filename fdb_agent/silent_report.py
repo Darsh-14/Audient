@@ -69,7 +69,7 @@ def agent_log(run: Path):
             if m:
                 gates[m.group(1)] = m.group(2)
                 continue
-            m = re.search(r"AUDIENT (call issued|user speech start|user speech end) room=(eval-[0-9a-f]+) ?(\w*)", line)
+            m = re.search(r"AUDIENT (call issued|reply nudge|user speech start|user speech end) room=(eval-[0-9a-f]+) ?(\w*)", line)
             if m:
                 events[m.group(2)].append((when(entry), f"{m.group(1)} {m.group(3)}".strip()))
                 continue
