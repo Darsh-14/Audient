@@ -5,6 +5,7 @@
 #   bash fdb_agent/run_benchmark.sh gemini2_5            # FDB-v3's own Gemini 2.5 template, unchanged (baseline)
 #   bash fdb_agent/run_benchmark.sh audient travel_01    # one scenario only (smoke test)
 #   SAMPLE=30 bash fdb_agent/run_benchmark.sh audient    # quick: an evenly spread 30 of the 100 recordings
+#   TAG=settle2 AUDIENT_SETTLE_S=2.0 SAMPLE=30 bash ...   # an experiment: results go to <agent>_sample30_settle2
 #
 # JOBS (default 3) recordings are streamed at the same time, each in its own room; the Gemini free tier limits
 # concurrent Live sessions, so keep it small. GAP (default 5) seconds separate one worker's recordings.
@@ -26,6 +27,7 @@ V3="$REPO/external/Full-Duplex-Bench/v3"
 PY="$REPO/external/fdb-venv/bin/python"
 [ -x "$PY" ] || PY="$REPO/external/fdb-venv/Scripts/python.exe"   # Windows layout
 OUT="$REPO/reports/fdb/$AGENT${EXAMPLE:+_$EXAMPLE}"; [ "$SAMPLE" != 0 ] && [ -z "$EXAMPLE" ] && OUT="$OUT"_sample$SAMPLE
+OUT="$OUT${TAG:+_$TAG}"
 LOG="/tmp/agent_${AGENT}.log"
 export PYTHONUTF8=1 FDB_V3_DIR="$V3"
 mkdir -p "$OUT" /tmp
@@ -76,8 +78,10 @@ cp "$LOG" "$OUT/agent.log"
 import json, platform, subprocess, sys, time
 out, agent, example, judged = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1"
 jobs, gap, sample = int(sys.argv[5]), float(sys.argv[6]), int(sys.argv[7])
+import os
+settle = os.environ.get("AUDIENT_SETTLE_S", "0.8 (default)") if agent == "audient" else None
 git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True).stdout.strip()
-cfg = {"agent": agent, "example": example or ("sample of %d" % sample if sample else "all"), "jobs": jobs, "gap_s": gap, "judge": "gpt-4o (--use-llm)" if judged else "exact match (no judge)",
+cfg = {"agent": agent, "example": example or ("sample of %d" % sample if sample else "all"), "jobs": jobs, "gap_s": gap, "audient_settle_s": settle, "tag": os.environ.get("TAG", ""), "judge": "gpt-4o (--use-llm)" if judged else "exact match (no judge)",
        "date_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "platform": platform.platform(),
        "python": platform.python_version(), "fdb_v3_commit": git("-C", "../", "rev-parse", "HEAD"),
        "audient_commit": git("-C", out, "rev-parse", "HEAD")}
