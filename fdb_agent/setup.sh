@@ -39,7 +39,7 @@ echo "== 4/6 Python 3.10 environment"
 python3 -m pip install -q --user uv
 python3 -m uv venv -q --python 3.10 "$VENV" 2>/dev/null || true
 PY="$VENV/bin/python"
-if python3 -c "import subprocess,sys; sys.exit(subprocess.call(['nvidia-smi'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))"; then
+if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
   TORCH_INDEX=()   # a GPU: the default (CUDA) PyTorch wheels
 else
   # no GPU: the much smaller CPU build of PyTorch (best match across both indexes for everything else)
