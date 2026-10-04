@@ -46,8 +46,11 @@ else
   TORCH_INDEX=(--extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match)
 fi
 python3 -m uv pip install -q --python "$PY" "${TORCH_INDEX[@]}" -r "$REPO/fdb_agent/requirements-fdb.txt"
+python3 -m uv cache clean -q 2>/dev/null || true   # the download cache is several GB; the environment is installed
 (cd "$V3" && "$PY" -m livekit.agents download-files >/dev/null)
-"$PY" -c "import livekit.agents, nemo; print('   livekit-agents', livekit.agents.__version__, '| nemo', nemo.__version__)"
+# a disk that fills up mid-install leaves packages incomplete; import what the run needs, so that shows here
+"$PY" -c "import scipy.linalg, sympy.logic.boolalg, torch, nemo.collections.asr, livekit.agents, livekit.plugins.google; print('   imports OK: livekit-agents', livekit.agents.__version__, '| nemo', __import__('nemo').__version__, '| torch', torch.__version__)"   || { echo "   an installed package is incomplete (often a full disk: df -h). Delete external/fdb-venv and run setup again."; exit 1; }
+df -h "$REPO" | tail -1 | awk '{print "   disk: " $4 " free of " $2}'
 
 echo "== 5/6 benchmark audio"
 if [ ! -d "$V3/fdb_v3_data_released" ]; then
@@ -56,6 +59,7 @@ if [ ! -d "$V3/fdb_v3_data_released" ]; then
   "$PY" -c "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None; z.extractall(sys.argv[2])" \
     "$EXT/data/fdb_v3_data_released.zip" "$V3"
   rm -rf "$V3/__MACOSX"
+  rm -f "$EXT/data/fdb_v3_data_released.zip"   # extracted; frees 736 MB
 fi
 echo "   recordings: $(ls "$V3"/fdb_v3_data_released/*/input.wav | wc -l)"
 
