@@ -10,8 +10,62 @@ explicit `call_id`, cancellations, clarifications, final responses with a state 
 
 > **Updated guide (Full-Duplex-Bench v3):** the benchmark now scored is FDB-v3, run against a LiveKit voice agent.
 > Audient as that agent, its model-provider and key declaration, and the one-command benchmark run are in
-> [fdb_agent/README.md](fdb_agent/README.md). The sections below describe the original queue-based agent, which
-> the web app and the extension use cases build on.
+> [fdb_agent/README.md](fdb_agent/README.md) and summarised in the next section. The sections after it describe
+> the original queue-based agent, which the web app and the extension use cases build on.
+
+## Full-Duplex-Bench v3 (the scored benchmark)
+
+[FDB-v3](https://github.com/DanielLin94144/Full-Duplex-Bench/tree/main/v3) streams 100 real human recordings
+(79 scenarios, 4 domains, fillers, pauses, false starts and self-corrections) into a LiveKit room. The agent answers
+by voice and calls 12 mock tools. FDB-v3's own scorers then check which calls were made.
+
+**Model provider (declaration):** Google **Gemini 2.5 Flash native audio**
+(`gemini-2.5-flash-native-audio-preview-12-2025`) over the Gemini Live API, through LiveKit's Google plugin;
+transport by **LiveKit Cloud**. Keys: `GOOGLE_API_KEY`, `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`
+(none are in the repository). At evaluation time the agent calls only Gemini and LiveKit, no server of ours, and
+nothing is cached across scenarios or written for particular benchmark items.
+
+**What Audient adds:** the speech model, voice and tool definitions are the same as FDB-v3's own `gemini2_5`
+template, which is the baseline. Between the model and the tools sits Audient's coordination layer
+([fdb_agent/coordination.py](fdb_agent/coordination.py)):
+
+* **hold, then commit:** a tool call runs once the user has been quiet for 2.0 s, so a call made during a pause in
+  the middle of a sentence waits for the rest of it;
+* **defer, don't drop:** if the user starts talking again first, the call waits; it is dropped only if they said a
+  correction ("wait", "actually", "instead"...) and the model has since made a newer call to the same tool;
+* **never repeat:** an identical call is executed once and its result reused.
+
+A local voice activity detector (Silero) on the user's audio tells the layer when the user is speaking.
+
+**Run it (one command, after a one-time setup; Linux or GitHub Codespaces):**
+
+```bash
+bash fdb_agent/setup.sh                       # once: FDB-v3 at the tested commit, its data, Python 3.10 environment
+bash fdb_agent/run_benchmark.sh audient       # all 100 recordings, about an hour
+bash fdb_agent/run_benchmark.sh gemini2_5     # FDB-v3's unchanged Gemini template (baseline)
+```
+
+Scores, per-recording results, the tool-call log, the agent log and the run configuration are written to
+`reports/fdb/<agent>/`. [fdb_agent/compare_runs.py](fdb_agent/compare_runs.py) compares two runs recording by
+recording; [fdb_agent/silent_report.py](fdb_agent/silent_report.py) explains recordings without a reply.
+
+**Results so far** (all 100 recordings, GitHub Codespaces, arguments compared exactly; we have no OpenAI key for
+FDB-v3's optional GPT-4o judge, so these are stricter than a judged run):
+
+| Run | Strict pass rate | Self-correction | Hard (3-tool chains) | No reply | Avg latency |
+|---|---|---|---|---|---|
+| FDB-v3 Gemini 2.5 template (baseline) | 47.0% | 41.2% | 40.0% | 1 | 13.2 s |
+| Audient, first full run | 47.0% | 64.7% | 26.7% | 6 | 13.0 s |
+| Audient, hold timed from the end of speech | 47.0% | **70.6%** | 36.7% | 18 | **12.1 s** |
+| Audient, hold driven by the local voice detector | *run in progress* | | | | |
+
+The layer does what it was built for: self-corrections improve by 23 to 29 points. That gain was cancelled out by
+recordings where the agent never replied. The cause was found in LiveKit's Gemini plugin (1.8.4): it reports that
+the user started speaking whenever Gemini starts a reply, and that they stopped only when the reply ends. A call
+made inside a reply therefore looked as if the user was still talking and was held for the 20 s safety limit,
+often past the end of the recording. The layer now listens to the user's audio itself. On a recording that had
+been silent, the agent now replies, but one recording proves nothing about the overall score. The full run is in
+progress, and this table will be updated with its result either way.
 
 ## Demo video & presentation
 
@@ -242,9 +296,10 @@ navigation phrases, and anything that needs world knowledge.
   (Windows 11). Python 3.10 gets numpy 2.2.6 / onnxruntime 1.23.2 (the pinned newer ones need 3.11+).
 * **Docker:** `Dockerfile` / `docker-compose.yml` are provided but were **not built** (no Docker on the
   build machine).
-* Not used: LiveKit/WebRTC, VAD models, cloud ASR/TTS. The benchmark and the free-form numbers above use the
+* The queue-based agent below uses no LiveKit/WebRTC, VAD models or cloud ASR/TTS (the FDB-v3 agent above does
+  use LiveKit, Gemini Live and a Silero VAD). The benchmark and the free-form numbers above use the
   deterministic rule parser and need no API keys. A hosted language model can be connected to the **web app**
-  (next section); it has been tested end to end against a stand-in server, not yet against a real provider.
+  (next section); it has been measured with real Gemini (see "Measured with real Gemini" below).
 * LED **blink counting** across frames is not implemented; blink patterns come from speech
   ("blinking blue twice"), the colour from the frame.
 
