@@ -8,6 +8,11 @@ queue (transcript chunks with end-of-turn markers, WAV clips, PNG frames, interr
 results, tool manifests) and writes actions to another (spoken fillers/acks/progress, tool calls with
 explicit `call_id`, cancellations, clarifications, final responses with a state snapshot).
 
+> **Updated guide (Full-Duplex-Bench v3):** the benchmark now scored is FDB-v3, run against a LiveKit voice agent.
+> Audient as that agent, its model-provider and key declaration, and the one-command benchmark run are in
+> [fdb_agent/README.md](fdb_agent/README.md). The sections below describe the original queue-based agent, which
+> the web app and the extension use cases build on.
+
 ## Demo video & presentation
 
 * **Demo video (≤ 5 min):** [Google Drive folder](https://drive.google.com/drive/folders/16Jqalua3wP0c1ag2Fa3MNCiXJdr55boL)
@@ -16,7 +21,7 @@ explicit `call_id`, cancellations, clarifications, final responses with a state 
 ## Quick start
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-asr.txt   # Python 3.10-3.13
 python run_eval.py                      # full suite: Audient vs. half-duplex baseline
 python run_eval.py --agent audient --show T04   # timestamped trace + every check for one scenario
 python -m pytest -q tests               # unit tests + free-form suites
@@ -130,11 +135,11 @@ sequenceDiagram
 |---|---|
 | `audient/agent.py` | Fast/slow/coordination layers, `CancelGraph`, two-tier slot snapshots, idempotency |
 | `audient/nlu.py` | Deterministic, schema-driven NLU: disfluencies (fillers, pauses, stutters, false starts, self-corrections), entities, intent routing, parameter typing from the manifest (works for unseen tools) |
-| `audient/perception.py` | Frame OCR (error codes, model numbers), LED colour, darkness/blur checks; optional Whisper ASR |
+| `audient/perception.py` | Frame OCR (error codes, model numbers), LED colour, darkness/blur checks; Whisper base.en speech recognition (int8, downloaded in the warm-up hook if not cached) |
 | `audient/vclock.py` | Virtual-time asyncio loop: idle waits are skipped, **real CPU time is charged** to the clock |
 | `audient/harness/` | Streaming replay harness, deterministic mock tools with latency + fault injection, scorer |
-| `audient/baseline.py` | Half-duplex baseline using the same NLU and OCR (isolates the architecture) |
-| `audient/protocol.py` | Event/action schema, validation, and `adapt_event` (single place to map another field naming) |
+| `audient/baseline.py` | Half-duplex baseline using the same NLU, OCR and speech recognition (isolates the architecture) |
+| `audient/protocol.py` | Event/action schema, validation, and `adapt_event` (single place to map another field naming): reads tool manifests in OpenAI, MCP (`inputSchema`, `readOnlyHint`) and flag styles, and tool results with other field names |
 | `audient/live.py` | Real-time session (agent + mock tools on the running event loop) and the bridge for browser perception |
 | `public/`, `api/run.py` | Web app (see [Web app](#web-app-talk-to-the-agent)) and the local server / replay API |
 
@@ -144,29 +149,41 @@ tools, so the whole suite replays in seconds and the numbers are still honest.
 
 ## Results (measured on this repo's suite)
 
-15 scenarios (12 text, 3 visual): self-correction, barge-in, mid-booking change, clarification, fault +
-retry, unseen tool, user cancel, acoustic pause, stutter/false start, speculative prefetch, in-car
-destination change, frame OCR, dark frame, multimodal self-repair. Scoring mirrors the guide:
-Task 40 / Interruption 35 / Latency 15 / Safety 10, quality multiplier 0.8–1.2, multimodal 1.5×,
-cancel grace 15 ms, floor target 250 ms.
+21 scenarios (12 text, 6 audio, 3 visual; the guide's mix is 50/30/20): self-correction, barge-in,
+mid-booking change, clarification, fault + retry, unseen tool, user cancel, acoustic pause, stutter/false
+start, speculative prefetch, in-car destination change, frame OCR, dark frame, multimodal self-repair, and
+the audio versions: a spoken request, spoken self-correction, spoken mid-booking change, silence, spoken
+in-car change and a spoken support ticket. Scoring mirrors the guide: Task 40 / Interruption 35 /
+Latency 15 / Safety 10, quality multiplier 0.8-1.2, multimodal 1.5x, cancel grace 15 ms, floor target 250 ms.
 
 | Metric | Audient | Half-duplex baseline |
 |---|---|---|
-| Scenarios with every check passing | **15 / 15** | 1 / 15 |
-| Weighted score, before quality multiplier | **100.0** | ≈75 |
-| First spoken response after a user turn (median) | **0.7 ms** (max 5.4 ms) | ≈ 1.5 s (max 3.4 s) |
-| Cancel latency after a correction | **≤ 2 ms** (0.4–1.4 ms) | never cancels |
-| Double bookings | **0** | 1 |
+| Weighted score (before quality multiplier) | **100.0** (97.4) | 87.1 (75.6) |
+| Scenarios passing every task, interruption and safety check | **21 / 21** | 2 / 21 pass every check |
+| First spoken response, text and camera turns (median) | **1.0 ms** (max 3.2 ms) | 1.6 s (max 3.4 s) |
+| First spoken response, audio turns (median) | **1.03 s** (speech recognition) | 3.8 s (max 6.8 s) |
+| Cancel after a typed correction | **0.5-2.8 ms** | never cancels |
+| Cancel after a spoken correction (from the clip arriving) | **0.93-1.06 s** | never cancels |
+| Double bookings | **0** | 2 (T04, A03) |
+
+Audio clips (`assets/audio/`, made by `scripts/make_audio.py` with the Windows voices) are transcribed
+by Whisper base.en with int8 weights: about 0.8-0.9 s per clip on this CPU (fp32 was ~1.4 s; tiny.en
+was ~0.7 s but misheard "Goa" as "go at"). That time is real and counted: the five spoken-turn scenarios
+get partial latency credit, so 16 / 21 scenarios pass every check including latency. A spoken correction
+can only be acted on after it is transcribed, so those cancels are graded from the clip's arrival with a
+1.5 s grace (`grace_s`) and the measured time is reported (`cancel_after_correction_ms`). Before acting, the
+agent says a short acknowledgment ("Mm-hm, one moment."), varied so two clips don't get the same words.
+Known miss: with these voices, "Pune to Chennai" was heard as "Pun to Genetomaro" by both Whisper models.
 
 Latencies are measured from the moment the agent receives an event. The harness reports separately how
 late its own timer delivered each event (`harness_delivery_lag_ms`, up to ~15 ms on Windows, whose timer
-ticks every 15.6 ms). Camera OCR runs in a separate process (`ProcessPerception`): run in a thread, its
-Python pre/post-processing held the GIL and delayed the agent by 10–23 ms (measured, 4 of 6 runs over the
-15 ms grace).
+ticks every 15.6 ms). Camera OCR and speech recognition run in a separate process (`ProcessPerception`):
+run in a thread, OCR's Python pre/post-processing held the GIL and delayed the agent by 10-23 ms (measured,
+4 of 6 runs over the 15 ms grace).
 
 ## Free-form requests (beyond the scripted scenarios)
 
-The 15 scenarios show the interruption mechanics work. They don't show what happens with requests nobody
+The 21 scenarios show the interruption mechanics work. They don't show what happens with requests nobody
 wrote a scenario for, so `scripts/eval_freeform.py` runs unscripted requests through the same live session
 the web app uses (same agent, mock tools and manifest) and checks the tool calls, commits and final reply.
 There are three sets in `tests/freeform/`, all session-dated 2026-10-02 (runs saved in
@@ -210,14 +227,21 @@ navigation phrases, and anything that needs world knowledge.
 
 * The **official evaluation kit was not released** when this was built. The event/action schema and
   the scorer are our reconstruction of the Theme 05 guide; `protocol.adapt_event` is where to adapt field names.
-* The suite was **written by us and the agent was developed against it**, so 15/15 shows the mechanisms
+  Manifests in other common formats are already understood (`tests/test_manifest_formats.py` replays the
+  state-changing scenarios with OpenAI-style, MCP-style and `read_only`-flag manifests: same score, one commit).
+  A tool that declares nothing is judged by its verb (`search_` read-only, `book_` state-changing); an unknown
+  verb counts as state-changing, the safe side for never repeating a write.
+* The suite was **written by us and the agent was developed against it**, so 21/21 shows the mechanisms
   work, not how the agent will do on the hidden ~60-scenario set.
-* **Audio in the Python benchmark** is implemented but **not benchmarked**: the Whisper model isn't installed
-  in the build environment, so audio turns get an explicit "didn't catch that" clarification. In the **web app**,
-  on-device Whisper tiny.en was tested on one synthetic (Windows text-to-speech) clip; the live microphone uses
-  the browser's speech service and can't be tested headlessly (no microphone).
+* **Audio** is benchmarked with synthetic speech (Windows text-to-speech, two US voices), not recorded human
+  speech or accents. The speech model (~290 MB) is fetched during the warm-up hook if it is not cached, which
+  needs internet once; with `AUDIENT_OFFLINE=1` and no cached model, audio turns get a clarification. In the
+  **web app**, on-device Whisper tiny.en handles recorded clips; the live microphone uses the browser's speech
+  service and can't be tested headlessly (no microphone).
+* **Python versions:** tests (36) and the full benchmark pass on **Python 3.10.22, 3.12.15 and 3.13.3**
+  (Windows 11). Python 3.10 gets numpy 2.2.6 / onnxruntime 1.23.2 (the pinned newer ones need 3.11+).
 * **Docker:** `Dockerfile` / `docker-compose.yml` are provided but were **not built** (no Docker on the
-  build machine). Tests and benchmark were run natively on Python 3.13.3 (code avoids >3.10 features).
+  build machine).
 * Not used: LiveKit/WebRTC, VAD models, cloud ASR/TTS. The benchmark and the free-form numbers above use the
   deterministic rule parser and need no API keys. A hosted language model can be connected to the **web app**
   (next section); it has been tested end to end against a stand-in server, not yet against a real provider.
@@ -309,13 +333,12 @@ replaces the pending call, failure falls back to rules, an invented flight id is
 Talk to the agent, type to it, upload a voice clip or show it a camera frame, and interrupt it while it
 works. One screen in black, white and blue:
 
-* **Centre:** the agent, a 3D glass listener (Three.js): a translucent body with drifting arms and two
-  ear-lobes on top. Its colour shows what it is doing and blends smoothly between states: calm ice-blue
-  when idle, cyan and aqua while listening (lit brighter the louder you talk), violet and pulsing while
-  thinking, pink and coral while it responds, and a warm flash when you interrupt. Its ears perk up while
-  you talk; it turns to your cursor and reaches toward it, a fast sweep or a click sends ripples through
-  the glass, and it drifts on random noise so the motion never repeats. Without WebGL it falls back to a
-  2D ring amoeba.
+* **Centre:** the agent, a 3D puffer fish (Three.js). It swims gently in place, turns to look at your
+  cursor and swims toward it, and blinks. While it listens it puffs up into a spiky ball, fuller the louder
+  you talk, and deflates when you stop. Its colour shows what it is doing and blends smoothly between states:
+  calm blue when idle, cyan and aqua while listening, violet and pulsing while thinking, pink and coral while
+  it responds (its mouth moves as it talks), and a golden flash with a startled puff when you interrupt. A
+  click is a poke: it puffs up in surprise. Without WebGL it falls back to a 2D ring amoeba.
 * **Top:** the AUDIENT wordmark and "Interruptible AI Voice Agent"; the clock on the right.
 * **Left sidebar, Tasks:** a button with a count badge (it beats while a task runs and turns amber when the
   agent needs an answer). It opens a panel listing every tool call in plain language ("Book flight UK-406 ·
@@ -347,7 +370,7 @@ Not yet deployed and tested on Vercel by us; everything below was tested locally
 flowchart LR
     subgraph B["🌐 Browser tab (all real-time work)"]
         direction TB
-        UI["Web UI (HUD)<br/>glass listener · latest exchange · talk button<br/>tasks sidebar · try-saying examples"]
+        UI["Web UI (HUD)<br/>puffer fish · latest exchange · talk button<br/>tasks sidebar · try-saying examples"]
         PY["Pyodide (Python → WebAssembly)<br/>the unchanged audient agent<br/>+ mock tools, real-time event loop"]
         MIC["Live mic<br/>Web Speech API<br/>streaming partial transcripts"]
         WH["Whisper tiny.en (Transformers.js)<br/>Web Worker, on-device"]
@@ -407,7 +430,7 @@ stay on screen; agent boots in ~5–8 s; booking
 corrected mid-flight with one write; camera frame read (WM-3000, E20) and the stale lookup cancelled;
 no premature action during "um…"; speculative search before the turn ends; unseen tool; typed input;
 "book the second one" books the 2nd result shown without a new search; "book a cab" is declined with no
-tool call; the Tasks panel opens from the sidebar with a matching count and closes on Escape; the listener reaches toward a nearby cursor and perks its ears, perks them while you talk and relaxes
+tool call; the Tasks panel opens from the sidebar with a matching count and closes on Escape; the puffer fish turns to a nearby cursor and swims toward it, puffs up while you talk and deflates
 after, keeps moving with nothing touching it, and changes colour as the agent thinks and responds; no horizontal scroll at phone width; no JavaScript errors. In the browser the agent
 answers in ~4–30 ms (WebAssembly is slower than native Python's ~1 ms, still far under the 250 ms target).
 

@@ -1,0 +1,19 @@
+# Environment for running Full-Duplex-Bench v3 with the Audient agent (Python 3.10, as FDB-v3 recommends).
+# Versions are the ones the Audient agent and FDB-v3's pipeline were run with (October 2026).
+livekit==1.1.20
+livekit-api==1.2.1
+livekit-agents==1.8.4
+livekit-plugins-google==1.8.4
+livekit-plugins-openai==1.8.4
+livekit-plugins-silero==1.8.4
+livekit-plugins-xai==1.8.4
+livekit-plugins-ultravox==1.8.4
+google-genai==2.28.0
+nemo-toolkit[asr]==3.0.0
+torch==2.14.1
+numpy==2.2.6
+openai==2.54.0
+python-dotenv==1.2.4
+pydub==0.25.1
+ffmpeg-python==0.2.0
+gdown==6.4.1

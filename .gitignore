@@ -12,3 +12,6 @@ CLAUDE.local.md
 # secrets: never commit
 .env
 .env.*
+
+# third-party benchmark checkout and data (not ours to commit)
+external/
