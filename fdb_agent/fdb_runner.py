@@ -23,8 +23,10 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -48,9 +50,13 @@ def load_asr_model():
 
 
 def selected(args):
-    inputs = rtb.discover_inputs()
+    inputs = sorted(rtb.discover_inputs(), key=lambda x: (x[1], x[0]))
     if args.example:
         inputs = [x for x in inputs if x[1] == args.example]
+    elif args.sample and args.sample < len(inputs):
+        # an evenly spread, deterministic subset: sorted by scenario id (grouped by domain), every k-th
+        step = len(inputs) / args.sample
+        inputs = [inputs[int(i * step)] for i in range(args.sample)]
     return inputs
 
 
@@ -78,33 +84,50 @@ def ready_at(room):
     return None
 
 
+_print_lock = threading.Lock()
+
+
+def say(*a):
+    with _print_lock:
+        print(*a, flush=True)
+
+
+def infer_one(args, n, total, pid, example_id, input_path):
+    out = input_path.parent / f"output_{args.provider}.wav"
+    side = input_path.parent / SIDECAR.format(provider=args.provider)
+    if side.exists() and out.exists() and not args.force:
+        say(f"[{n}/{total}] {example_id} ({pid[:8]}): already streamed, skipping")
+        return
+    t0 = time.time()
+    attempts = []
+    for _ in range(2):
+        room, start, code = stream(input_path, out)
+        late = None
+        if room and args.provider == "audient":
+            ready = ready_at(room)
+            late = None if (ready is None or start is None) else round(ready - start, 2)
+        agent_ok = args.provider != "audient" or (late is not None and late <= 1.0)
+        attempts.append({"room": room, "exit_code": code, "agent_ready_after_start_s": late})
+        if room is not None and agent_ok:
+            break
+        say(f"  ↻ {example_id}: infrastructure retry (client exit={code}, agent ready {late}s after start)")
+        time.sleep(args.gap)
+    side.write_text(json.dumps({"room_name": room, "stream_start_time": start, "attempts": attempts,
+                                "inference_time_s": round(time.time() - t0, 2)}), encoding="utf-8")
+    say(f"[{n}/{total}] {example_id} ({pid[:8]}): room={room} ok={room is not None} attempts={len(attempts)}")
+    time.sleep(args.gap)  # let the agent finish closing this room (it uploads a session report)
+
+
 def infer(args):
     inputs = selected(args)
-    print(f"🚀 inference for {len(inputs)} recording(s), provider={args.provider}")
-    for i, (pid, example_id, input_path) in enumerate(inputs, 1):
-        out = input_path.parent / f"output_{args.provider}.wav"
-        side = input_path.parent / SIDECAR.format(provider=args.provider)
-        if side.exists() and out.exists() and not args.force:
-            print(f"[{i}/{len(inputs)}] {example_id} ({pid[:8]}): already streamed, skipping")
-            continue
-        t0 = time.time()
-        attempts = []
-        for _ in range(2):
-            room, start, code = stream(input_path, out)
-            late = None
-            if room and args.provider == "audient":
-                ready = ready_at(room)
-                late = None if (ready is None or start is None) else round(ready - start, 2)
-            agent_ok = args.provider != "audient" or (late is not None and late <= 1.0)
-            attempts.append({"room": room, "exit_code": code, "agent_ready_after_start_s": late})
-            if room is not None and agent_ok:
-                break
-            print(f"  ↻ infrastructure retry: client exit={code}, agent ready {late}s after the recording started")
-            time.sleep(args.gap)
-        side.write_text(json.dumps({"room_name": room, "stream_start_time": start, "attempts": attempts,
-                                    "inference_time_s": round(time.time() - t0, 2)}), encoding="utf-8")
-        print(f"[{i}/{len(inputs)}] {example_id} ({pid[:8]}): room={room} ok={room is not None} attempts={len(attempts)}")
-        time.sleep(args.gap)  # let the agent finish closing the previous room (it uploads a session report)
+    t0 = time.time()
+    say(f"🚀 inference for {len(inputs)} recording(s), provider={args.provider}, {args.jobs} at a time")
+    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        futures = [pool.submit(infer_one, args, n, len(inputs), pid, ex, path)
+                   for n, (pid, ex, path) in enumerate(inputs, 1)]
+        for f in futures:
+            f.result()
+    say(f"✅ streamed {len(inputs)} recording(s) in {(time.time() - t0) / 60:.1f} min")
 
 
 def score(args):
@@ -119,13 +142,14 @@ def score(args):
     data = rtb.load_data()
     inputs = selected(args)
     asr = load_asr_model()
+    t0 = time.time()
     done = failed = 0
     for pid, example_id, input_path in inputs:
         print(f"\n📂 {example_id} ({pid[:8]})")
         r = rtb.process_single(pid, example_id, input_path, args.provider, data, asr, force=True)
         done += bool(r and r.get("status") == "completed")
         failed += not (r and r.get("status") == "completed")
-    print(f"\n📊 scored: completed={done} failed={failed}")
+    print(f"\n📊 scored: completed={done} failed={failed} in {(time.time() - t0) / 60:.1f} min")
 
 
 if __name__ == "__main__":
@@ -134,6 +158,8 @@ if __name__ == "__main__":
     ap.add_argument("--provider", default="audient")
     ap.add_argument("--example")
     ap.add_argument("--force", action="store_true")
-    ap.add_argument("--gap", type=float, default=25.0)  # 5 s apart lost 1 of 3 LiveKit connections here; 25 s, 0 of 3
+    ap.add_argument("--gap", type=float, default=25.0)  # on a flaky laptop 5 s lost 1 of 3 connections, 25 s 0 of 3
+    ap.add_argument("--jobs", type=int, default=1, help="recordings streamed at the same time (separate rooms)")
+    ap.add_argument("--sample", type=int, default=0, help="only an evenly spread subset of this many recordings")
     a = ap.parse_args()
     infer(a) if a.phase == "infer" else score(a)

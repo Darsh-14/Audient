@@ -4,6 +4,10 @@
 #   bash fdb_agent/run_benchmark.sh audient              # Audient (this repo's agent), all 100 recordings
 #   bash fdb_agent/run_benchmark.sh gemini2_5            # FDB-v3's own Gemini 2.5 template, unchanged (baseline)
 #   bash fdb_agent/run_benchmark.sh audient travel_01    # one scenario only (smoke test)
+#   SAMPLE=30 bash fdb_agent/run_benchmark.sh audient    # quick: an evenly spread 30 of the 100 recordings
+#
+# JOBS (default 3) recordings are streamed at the same time, each in its own room; the Gemini free tier limits
+# concurrent Live sessions, so keep it small. GAP (default 5) seconds separate one worker's recordings.
 #
 # Steps: start the agent and wait until LiveKit registers it, stream every recording (fdb_runner.py infer),
 # stop the agent, run FDB-v3's ASR/latency/tool-call extraction (fdb_runner.py score), then FDB-v3's two
@@ -13,11 +17,15 @@ set -euo pipefail
 
 AGENT="${1:?usage: run_benchmark.sh <audient|gemini2_5|gemini3_1> [example_id]}"
 EXAMPLE="${2:-}"
+JOBS="${JOBS:-3}"
+GAP="${GAP:-5}"
+SAMPLE="${SAMPLE:-0}"
+SEL=(); [ -n "$EXAMPLE" ] && SEL=(--example "$EXAMPLE"); [ "$SAMPLE" != 0 ] && [ -z "$EXAMPLE" ] && SEL=(--sample "$SAMPLE")
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 V3="$REPO/external/Full-Duplex-Bench/v3"
 PY="$REPO/external/fdb-venv/bin/python"
 [ -x "$PY" ] || PY="$REPO/external/fdb-venv/Scripts/python.exe"   # Windows layout
-OUT="$REPO/reports/fdb/$AGENT${EXAMPLE:+_$EXAMPLE}"
+OUT="$REPO/reports/fdb/$AGENT${EXAMPLE:+_$EXAMPLE}"; [ "$SAMPLE" != 0 ] && [ -z "$EXAMPLE" ] && OUT="$OUT"_sample$SAMPLE
 LOG="/tmp/agent_${AGENT}.log"
 export PYTHONUTF8=1 FDB_V3_DIR="$V3"
 mkdir -p "$OUT" /tmp
@@ -36,11 +44,14 @@ grep -q "registered worker" "$LOG" || { echo "agent did not register; see $LOG";
 echo "   registered with LiveKit"
 
 echo "== streaming recordings"
-"$PY" "$REPO/fdb_agent/fdb_runner.py" infer --provider "$AGENT" ${EXAMPLE:+--example "$EXAMPLE"} --force
+# start clean: FDB-v3's scorers read every result file for this agent, so remove earlier ones first
+rm -f fdb_v3_data_released/*/result_"$AGENT".json fdb_v3_data_released/*/inference_"$AGENT".json \
+      fdb_v3_data_released/*/output_"$AGENT".wav
+"$PY" "$REPO/fdb_agent/fdb_runner.py" infer --provider "$AGENT" "${SEL[@]}" --force --jobs "$JOBS" --gap "$GAP"
 kill $AGENT_PID 2>/dev/null || true; sleep 5
 
 echo "== FDB-v3 ASR, latency and tool-call extraction"
-"$PY" "$REPO/fdb_agent/fdb_runner.py" score --provider "$AGENT" ${EXAMPLE:+--example "$EXAMPLE"}
+"$PY" "$REPO/fdb_agent/fdb_runner.py" score --provider "$AGENT" "${SEL[@]}"
 
 echo "== FDB-v3 scorers"
 JUDGE=(); [ -n "${OPENAI_API_KEY:-}" ] && JUDGE=(--use-llm)
@@ -54,18 +65,19 @@ echo "== saving per-recording results and logs to $OUT"
 mkdir -p "$OUT/results"
 for d in fdb_v3_data_released/*/; do
   name=$(basename "$d")
-  [ -z "$EXAMPLE" ] || [[ "$name" == "${EXAMPLE}_"* ]] || continue
+  [ -f "$d/result_$AGENT.json" ] || continue
   for f in "result_$AGENT.json" "inference_$AGENT.json"; do
     [ -f "$d$f" ] && { mkdir -p "$OUT/results/$name"; cp "$d$f" "$OUT/results/$name/"; }
   done
 done
 cp /tmp/agent_tool_calls.log "$OUT/agent_tool_calls.log" 2>/dev/null || true
 cp "$LOG" "$OUT/agent.log"
-"$PY" - "$OUT" "$AGENT" "$EXAMPLE" "${#JUDGE[@]}" <<'EOF'
+"$PY" - "$OUT" "$AGENT" "$EXAMPLE" "${#JUDGE[@]}" "$JOBS" "$GAP" "$SAMPLE" <<'EOF'
 import json, platform, subprocess, sys, time
 out, agent, example, judged = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1"
+jobs, gap, sample = int(sys.argv[5]), float(sys.argv[6]), int(sys.argv[7])
 git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True).stdout.strip()
-cfg = {"agent": agent, "example": example or "all", "judge": "gpt-4o (--use-llm)" if judged else "exact match (no judge)",
+cfg = {"agent": agent, "example": example or ("sample of %d" % sample if sample else "all"), "jobs": jobs, "gap_s": gap, "judge": "gpt-4o (--use-llm)" if judged else "exact match (no judge)",
        "date_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "platform": platform.platform(),
        "python": platform.python_version(), "fdb_v3_commit": git("-C", "../", "rev-parse", "HEAD"),
        "audient_commit": git("-C", out, "rev-parse", "HEAD")}
