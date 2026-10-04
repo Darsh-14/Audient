@@ -41,6 +41,12 @@ class HalfDuplexAgent:
                 self.tools = {x["name"]: x for x in ev["tools"]}
             elif t == "frame":
                 self.frame = ev["path"]
+            elif t == "audio":  # same speech recognition as Audient, but blocking, on the conversation thread
+                res = self.perception.transcribe(ev["path"]) if self.perception is not None else {}
+                if res.get("text") and not res.get("ambiguous"):
+                    self.backlog.insert(0, {"type": "transcript", "text": res["text"], "end_of_turn": ev.get("end_of_turn", True)})
+                else:
+                    self.out.put_nowait({"type": "clarify", "text": "Sorry?", "slot": None, "state_snapshot": self.snap("clarifying")})
             elif t == "transcript":
                 self.buffer.append(ev["text"])
                 if ev.get("end_of_turn", True):

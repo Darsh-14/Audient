@@ -1,4 +1,9 @@
-"""Generate the public-style scenario suite (text + visual), FDB-v3 disfluency classes included."""
+"""Generate the public-style scenario suite (text + audio + visual), FDB-v3 disfluency classes included.
+
+Audio clips come from scripts/make_audio.py. A spoken correction can only be acted on once it has been
+transcribed, so audio cancellations are measured from the clip's arrival with a grace that covers speech
+recognition (grace_s), and the measured time is reported.
+"""
 import json
 from pathlib import Path
 
@@ -24,6 +29,13 @@ def I(t):
 
 def F(t, name):
     return {"t": t, "type": "frame", "path": f"assets/frames/{name}"}
+
+
+def A(t, name, eot=True):
+    return {"t": t, "type": "audio", "path": f"assets/audio/{name}", "end_of_turn": eot}
+
+
+ASR_GRACE_S = 1.5  # speech recognition (~0.7 s per clip measured with whisper-tiny.en on CPU) + the cancel itself
 
 
 SC = [
@@ -118,6 +130,46 @@ SC = [
                  "calls": [{"tool": "lookup_manual", "args": {"device_model": "WM-3000", "indicator": "blue_blinking_2"}}],
                  "snapshot": {"intent": "lookup_manual", "slots": {"indicator": "blue_blinking_2"}, "status": "completed"},
                  "response_contains": ["valve"]}),
+    # ---- audio: raw WAV clips, transcribed by the agent (Whisper) behind a spoken acknowledgment
+    dict(id="A01_audio_request", modality="audio", tags=["audio", "baseline_flow"],
+         events=[A(0.5, "a01_find_flights.wav")],
+         expect={"calls": [{"tool": "search_flights", "args": {"origin": "Mumbai", "destination": "Delhi",
+                                                               "date": "2026-10-02", "passengers": 2}}],
+                 "snapshot": {"intent": "search_flights", "slots": {"destination": "Delhi"}, "status": "completed"},
+                 "response_contains": ["Delhi"]}),
+    dict(id="A02_audio_self_correction", modality="audio", tags=["audio", "self_correction", "interruption"],
+         env={"latency": {"search_flights": 3.0}},
+         events=[A(0.5, "a02_search_delhi.wav"), I(2.0), A(2.0, "a02_make_it_bangalore.wav")],
+         expect={"cancel": [{"tool": "search_flights", "args": {"destination": "Delhi"}, "by": 2.0, "grace_s": ASR_GRACE_S}],
+                 "no_calls": [{"tool": "search_flights", "args": {"destination": "Delhi"}, "after": 2.0}],
+                 "calls": [{"tool": "search_flights", "args": {"origin": "Mumbai", "destination": "Bangalore",
+                                                               "date": "2026-10-02"}}],
+                 "snapshot": {"intent": "search_flights", "slots": {"destination": "Bangalore"}, "status": "completed"},
+                 "response_contains": ["Bangalore"]}),
+    dict(id="A03_audio_mid_booking_adjust", modality="audio", tags=["audio", "interruption", "no_double_booking"],
+         env={"latency": {"book_flight": 3.0}},
+         events=[A(0.5, "a03_book_delhi_goa.wav"), I(3.4), A(3.4, "a03_three_passengers.wav")],
+         expect={"cancel": [{"tool": "book_flight", "args": {"passengers": 2}, "by": 3.4, "grace_s": ASR_GRACE_S}],
+                 "no_calls": [{"tool": "book_flight", "args": {"passengers": 2}, "after": 3.4}],
+                 "commits": {"book_flight": 1}, "commit_args": [{"tool": "book_flight", "args": {"passengers": 3}}],
+                 "snapshot": {"intent": "book_flight", "slots": {"passengers": 3}, "status": "completed"},
+                 "response_contains": ["BK"]}),
+    dict(id="A04_audio_silence", modality="audio", tags=["audio", "ambiguous_perception"],
+         events=[A(0.5, "a04_silence.wav")],
+         expect={"clarify": True, "no_tool_before": 99}),
+    dict(id="A05_audio_in_car_change", modality="audio", tags=["audio", "interruption", "self_correction", "in_car"],
+         env={"latency": {"get_route": 3.0}},
+         events=[A(0.5, "a05_navigate_office.wav"), I(1.8), A(1.8, "a05_airport_instead.wav")],
+         expect={"cancel": [{"tool": "get_route", "args": {"destination": "office"}, "by": 1.8, "grace_s": ASR_GRACE_S}],
+                 "no_calls": [{"tool": "get_route", "args": {"destination": "office"}, "after": 1.8}],
+                 "calls": [{"tool": "get_route", "args": {"destination": "airport"}}],
+                 "snapshot": {"intent": "get_route", "slots": {"destination": "airport"}, "status": "completed"},
+                 "response_contains": ["airport"]}),
+    dict(id="A06_audio_support_ticket", modality="audio", tags=["audio", "state_modifying"],
+         events=[A(0.5, "a06_ticket.wav")],
+         expect={"commits": {"create_ticket": 1},
+                 "commit_args": [{"tool": "create_ticket", "args": {"device": "washing machine", "priority": "high"}}],
+                 "snapshot": {"intent": "create_ticket", "status": "completed"}}),
 ]
 
 if __name__ == "__main__":

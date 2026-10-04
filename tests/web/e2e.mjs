@@ -214,8 +214,12 @@ try {
   await page.evaluate(() => window.audient.newSession());
   await sendText("Find the nearest movie theatre");
   await page.waitForFunction(finalIn(1), { timeout: 45000 });
-  const pl = await page.evaluate(() => { const c = window.audient.rt.liveState().calls.find((x) => x.tool === "find_places"); return { r: c?.result, said: window.audient.S().trace.filter((r) => r.type === "final_response").pop()?.text }; });
-  check("nearest cinema, live from OpenStreetMap", pl.r?.source === "openstreetmap" && pl.r.places?.length >= 1 && pl.r.places[0].distance_km < 13, (pl.said || "").slice(0, 120));
+  // the answer comes from the last completed search (an earlier speculative one may have been cancelled)
+  const pl = await page.evaluate(() => { const cs = window.audient.rt.liveState().calls.filter((x) => x.tool === "find_places");
+    return { r: cs.filter((x) => x.result).pop()?.result, calls: cs.map((x) => `${x.status}${x.speculative ? "/spec" : ""}:${x.result?.source || "-"}`),
+             said: window.audient.S().trace.filter((r) => r.type === "final_response").pop()?.text }; });
+  check("nearest cinema, live from OpenStreetMap", pl.r?.source === "openstreetmap" && pl.r.places?.length >= 1 && pl.r.places[0].distance_km < 13,
+        `${(pl.said || "").slice(0, 100)} [${pl.calls.join(", ")}]`);
   await page.evaluate(() => window.audient.newSession());
   await sendText("Take me to the nearest cinema");
   await page.waitForFunction(finalIn(1), { timeout: 45000 });
@@ -229,20 +233,20 @@ try {
   await page.waitForFunction(() => window.audient.S().trace.some((r) => r.type === "clarify" && /smart home/.test(r.text)), { timeout: 10000 });
   check("intro describes the wider domain", true, (await page.evaluate(() => window.audient.S().trace.filter((r) => r.type === "clarify").pop().text)).slice(0, 120));
 
-  // 8. the glass listener (3D): reaches for a nearby cursor, perks its ears while you talk, keeps moving,
-  //    and follows the agent's state
+  // 8. the puffer fish (3D): turns to a nearby cursor and swims toward it, puffs up while you talk,
+  //    keeps moving, and changes colour with the agent's state
   await page.waitForFunction(() => window.audient.listener().renderer, { timeout: 30000 });
   const box = await page.evaluate(() => { const r = document.getElementById("creature").getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; });
   const cx = box[0] + box[2] / 2, cy = box[1] + box[3] / 2;
-  const lis = () => page.evaluate(() => { const l = window.audient.listener(); return { reach: l.reach, ear: l.ear, t: l.t, frames: l.frames, state: l.state, rest: l.mood.ears }; });
+  const lis = () => page.evaluate(() => { const l = window.audient.listener(); return { reach: l.reach, puff: l.puff, yaw: l.look.yaw, t: l.t, frames: l.frames, state: l.state, rest: l.mood.puff }; });
   await page.mouse.move(5, 5);
   await new Promise((r) => setTimeout(r, 1200));
   const far = await lis();
   for (let i = 1; i <= 12; i++) await page.mouse.move(5 + ((cx + box[2] * 0.3 - 5) * i) / 12, 5 + ((cy - 5) * i) / 12);
   await new Promise((r) => setTimeout(r, 900));
   const nearC = await lis();
-  check("listener reaches toward a nearby cursor and perks up", nearC.reach > 0.5 && far.reach < 0.15 && nearC.ear > far.ear + 0.15,
-        `reach ${far.reach.toFixed(2)} -> ${nearC.reach.toFixed(2)}, ears ${far.ear.toFixed(2)} -> ${nearC.ear.toFixed(2)}`);
+  check("puffer turns to a nearby cursor and swims toward it", nearC.reach > 0.5 && far.reach < 0.15 && nearC.yaw > far.yaw + 0.8,
+        `reach ${far.reach.toFixed(2)} -> ${nearC.reach.toFixed(2)}, heading ${far.yaw.toFixed(2)} -> ${nearC.yaw.toFixed(2)} rad`);
   await page.mouse.move(5, 5);
   // a voice: the app's own mic meter (fed by the fake device) is muted so only this test sets the level
   await page.evaluate(() => { const l = window.audient.listener(); l.setLevel = () => {}; window._talk = setInterval(() => { l.level = 0.6 + 0.3 * Math.random(); }, 50); });
@@ -252,10 +256,10 @@ try {
   await new Promise((r) => setTimeout(r, 1500));
   const after = await lis();
   await page.evaluate(() => { delete window.audient.listener().setLevel; });  // the app's meter drives it again
-  check("ears perk while you talk and relax after", talking.ear > 0.75 && after.ear < talking.ear - 0.15 && Math.abs(after.ear - after.rest) < 0.1,
-        `ears ${talking.ear.toFixed(2)} while talking, ${after.ear.toFixed(2)} after (rest ${after.rest.toFixed(2)})`);
+  check("puffs up while you talk and deflates after", talking.puff > 0.6 && after.puff < talking.puff - 0.3 && Math.abs(after.puff - after.rest) < 0.1,
+        `puff ${talking.puff.toFixed(2)} while talking, ${after.puff.toFixed(2)} after (rest ${after.rest.toFixed(2)})`);
   const m1 = await lis(); await new Promise((r) => setTimeout(r, 600)); const m2 = await lis();
-  check("listener keeps moving with nothing touching it", m2.t > m1.t && m2.frames > m1.frames, `time ${m1.t.toFixed(2)} -> ${m2.t.toFixed(2)}, ${m2.frames - m1.frames} frames`);
+  check("puffer keeps moving with nothing touching it", m2.t > m1.t && m2.frames > m1.frames, `time ${m1.t.toFixed(2)} -> ${m2.t.toFixed(2)}, ${m2.frames - m1.frames} frames`);
   // its colour follows what the agent is doing: from calm blue to violet (thinking) or pink (responding)
   const warmth = () => page.evaluate(() => { const c = window.audient.listener().colA; return { w: c.r - c.g, hex: c.getHexString(), state: window.audient.listener().state }; });
   const before = await warmth();
@@ -264,7 +268,7 @@ try {
   const seen = [];
   for (let i = 0; i < 15; i++) { seen.push(await warmth()); await new Promise((r) => setTimeout(r, 200)); }
   const warmest = seen.reduce((a, b) => (b.w > a.w ? b : a));
-  check("listener changes colour as it thinks and responds", before.w < 0 && warmest.w > 0.05,
+  check("puffer changes colour as it thinks and responds", before.w < 0 && warmest.w > 0.05,
         `${before.hex} (${before.state}) -> ${warmest.hex} (${warmest.state}); states ${[...new Set(seen.map((s) => s.state))].join(", ")}`);
   await page.screenshot({ path: `${SHOTS}/hud.png` });
 

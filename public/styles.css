@@ -53,7 +53,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .creature { position: relative; width: min(100%, 520px); aspect-ratio: 1; touch-action: none; cursor: crosshair; }
 .creature .amoeba { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   filter: drop-shadow(0 0 10px rgba(47, 123, 255, .75)) drop-shadow(0 0 34px rgba(47, 123, 255, .35)); }
-/* the 3D glass listener; its halo takes the colour of what it's doing */
+/* the 3D puffer fish; its halo takes the colour of what it's doing */
 .creature .listener { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: filter .6s ease;
   filter: drop-shadow(0 0 14px rgba(127, 180, 255, .3)) drop-shadow(0 0 40px rgba(127, 180, 255, .12)); }
 .creature[data-state="listening"] .listener { filter: drop-shadow(0 0 16px rgba(31, 224, 255, .45)) drop-shadow(0 0 46px rgba(31, 224, 255, .2)); }

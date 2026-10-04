@@ -1,4 +1,5 @@
-# Optional: audio (WAV) scenarios. The model (openai/whisper-base.en) must be downloaded once:
+# Audio (WAV) input. The speech model (openai/whisper-base.en, ~290 MB) is downloaded automatically during
+# the warm-up hook if it is not cached yet; AUDIENT_OFFLINE=1 forbids that. To fetch it ahead of time:
 #   python -c "from transformers import WhisperProcessor as P, WhisperForConditionalGeneration as M; P.from_pretrained('openai/whisper-base.en'); M.from_pretrained('openai/whisper-base.en')"
 torch==2.8.0
 torchaudio==2.8.0

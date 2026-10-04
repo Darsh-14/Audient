@@ -5,6 +5,7 @@ the fast path keeps reacting to interruptions while a frame or clip is processed
 """
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
@@ -18,8 +19,10 @@ HUES = [("red", 0, 15), ("amber", 15, 45), ("yellow", 45, 70), ("green", 70, 170
 
 
 class Perception:
-    def __init__(self, asr_model: str = "openai/whisper-base.en") -> None:
-        self.asr_model = asr_model
+    def __init__(self, asr_model: str | None = None) -> None:
+        # whisper-base.en with int8 weights: measured ~0.75 s per clip on CPU here (fp32: ~1.39 s) and every
+        # audio-suite clip recognised word for word; tiny.en was ~0.67 s but misheard "Goa" as "go at"
+        self.asr_model = asr_model or os.environ.get("AUDIENT_ASR_MODEL", "openai/whisper-base.en")
         self._ocr = None
         self._asr = None
 
@@ -29,12 +32,34 @@ class Perception:
             return  # models are stateless and shared; no session data is cached
         from rapidocr_onnxruntime import RapidOCR
         self._ocr = RapidOCR()
-        try:  # ASR is optional: only used if the model is already on disk (no silent downloads)
+        # ASR: use the model from the local cache; if it is missing (or incomplete), download it once here,
+        # inside the setup/warm-up hook (~290 MB, about a minute), never during a scenario.
+        # AUDIENT_OFFLINE=1 forbids the download; then audio clips get a clarification instead.
+        self.asr_error = None
+        try:
             from transformers import WhisperForConditionalGeneration, WhisperProcessor
-            self._asr = (WhisperProcessor.from_pretrained(self.asr_model, local_files_only=True),
-                         WhisperForConditionalGeneration.from_pretrained(self.asr_model, local_files_only=True).eval())
-        except Exception:
-            self._asr = None
+        except Exception as e:  # torch / transformers not installed
+            self._asr, self.asr_error = None, f"ASR libraries missing: {e}"
+            return
+        for local in (True, False):
+            if not local and os.environ.get("AUDIENT_OFFLINE") == "1":
+                break
+            try:
+                model = WhisperForConditionalGeneration.from_pretrained(self.asr_model, local_files_only=local).eval()
+                if os.environ.get("AUDIENT_ASR_INT8", "1") != "0":  # int8 linear layers: ~2x faster on CPU
+                    import torch
+                    model = torch.ao.quantization.quantize_dynamic(model, {torch.nn.Linear}, dtype=torch.qint8)
+                self._asr = (WhisperProcessor.from_pretrained(self.asr_model, local_files_only=local), model)
+                self.asr_error = None
+                self._prime_asr()
+                return
+            except Exception as e:
+                self._asr, self.asr_error = None, f"{type(e).__name__}: {e}"[:300]
+
+    def _prime_asr(self) -> None:
+        """One recognition pass on a second of quiet noise: the model's first run is ~1-2 s slower (lazy
+        initialisation), and that belongs in the warm-up hook, not in the first scenario's latency."""
+        self._recognise((np.random.default_rng(0).standard_normal(16000) * 0.01).astype(np.float32), 16000)
 
     # ------------------------------------------------------------------ vision
     def analyze_frame(self, path: str) -> dict[str, Any]:
@@ -98,6 +123,9 @@ class Perception:
             return {"text": "", "ambiguous": "silence"}
         if self._asr is None:
             return {"text": "", "ambiguous": "asr_model_not_installed"}
+        return self._recognise(audio, sr)
+
+    def _recognise(self, audio: np.ndarray, sr: int) -> dict[str, Any]:
         import torch
         import torchaudio
         if sr != 16000:
@@ -121,8 +149,8 @@ def _w_init() -> None:
     _WORKER.warmup()
 
 
-def _w_ping() -> bool:
-    return _WORKER is not None and _WORKER._asr is not None
+def _w_ping() -> tuple[bool, str | None]:
+    return (_WORKER is not None and _WORKER._asr is not None), getattr(_WORKER, "asr_error", None)
 
 
 def _w_analyze(path: str) -> dict[str, Any]:
@@ -144,12 +172,13 @@ class ProcessPerception:
     def __init__(self) -> None:
         self._pool = None
         self.asr_available = False
+        self.asr_error: str | None = None
 
     def warmup(self) -> None:
         if self._pool is None:
             from concurrent.futures import ProcessPoolExecutor
             self._pool = ProcessPoolExecutor(max_workers=1, initializer=_w_init)
-            self.asr_available = self._pool.submit(_w_ping).result()
+            self.asr_available, self.asr_error = self._pool.submit(_w_ping).result()
 
     def analyze_frame(self, path: str) -> dict[str, Any]:
         return self._pool.submit(_w_analyze, path).result()

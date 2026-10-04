@@ -26,6 +26,7 @@ StateSnapshot: {"version": int, "intent": str|None, "slots": {..}, "status": str
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 ACTION_TYPES = {"speak", "tool_call", "cancel", "clarify", "final_response"}
@@ -34,7 +35,8 @@ SNAPSHOT_STATUS = {"idle", "clarifying", "in_progress", "completed", "cancelled"
 
 _ALIASES = {"chunk": "transcript", "text_chunk": "transcript", "audio_clip": "audio",
             "video_frame": "frame", "image": "frame", "interrupt": "interruption",
-            "manifest": "tool_manifest"}
+            "manifest": "tool_manifest", "tool_response": "tool_result", "tool_output": "tool_result"}
+_OK = {"ok", "success", "succeeded", "completed", "complete", "done"}
 
 
 def adapt_event(ev: dict[str, Any]) -> dict[str, Any]:
@@ -45,16 +47,99 @@ def adapt_event(ev: dict[str, Any]) -> dict[str, Any]:
         ev["t"] = ev["timestamp"]
     if "eot" in ev and "end_of_turn" not in ev:
         ev["end_of_turn"] = ev["eot"]
-    if ev["type"] == "tool_manifest" and "tools" not in ev and "manifest" in ev:
-        ev["tools"] = ev["manifest"]
+    if ev["type"] == "tool_manifest":
+        tools = next((ev[k] for k in ("tools", "manifest", "functions") if k in ev), [])
+        ev["tools"] = [normalize_tool(t) for t in tools]
+    elif ev["type"] == "tool_result":
+        if "call_id" not in ev:
+            ev["call_id"] = next((ev[k] for k in ("tool_call_id", "callId", "id") if k in ev), None)
+        if "result" not in ev:
+            for k in ("output", "data", "content", "response"):
+                if k in ev:
+                    ev["result"] = ev[k]
+                    break
+        if isinstance(ev.get("ok"), bool) and "status" not in ev:
+            ev["status"] = "ok" if ev["ok"] else "error"
+        st = str(ev.get("status", "ok" if "error" not in ev else "error")).lower()
+        ev["status"] = "ok" if st in _OK else "error"
     return ev
 
 
-def is_state_modifying(spec: dict[str, Any]) -> bool:
-    se = str(spec.get("side_effect", spec.get("kind", ""))).lower()
-    if se in {"state_modifying", "write", "mutating", "side_effect"}:
+# ---- tool specs: any common manifest format -> {"name", "description", "side_effect", "parameters"}
+_WRITE = {"state_modifying", "state-modifying", "state_changing", "state-changing", "write", "writes", "read_write",
+          "mutating", "mutation", "mutates", "modify", "modifying", "side_effect", "side_effects", "action", "command"}
+_READ = {"read_only", "read-only", "readonly", "read", "query", "safe", "none", "pure", "idempotent_read"}
+_EFFECT_KEYS = ("side_effect", "side_effects", "sideEffect", "sideEffects", "effect", "effects", "kind",
+                "access", "mode", "category", "type")
+_WRITE_VERBS = {"book", "create", "cancel", "delete", "remove", "update", "set", "send", "make", "place", "reserve",
+                "order", "pay", "purchase", "buy", "submit", "add", "schedule", "post", "transfer", "play", "control",
+                "start", "stop", "call", "reset", "open", "close", "turn", "change", "modify", "edit", "register",
+                "subscribe", "unsubscribe", "confirm", "approve", "assign", "upload", "save", "write", "log", "take",
+                "enable", "disable", "lock", "unlock", "rate", "refund", "rebook", "reschedule", "file", "raise"}
+_READ_VERBS = {"get", "find", "search", "lookup", "look", "list", "check", "fetch", "read", "show", "query", "view",
+               "estimate", "track", "describe", "detect", "recognize", "recognise", "analyze", "analyse", "compare",
+               "translate", "calculate", "convert", "count", "locate", "browse", "identify", "summarize", "verify"}
+
+
+def _declared_effect(spec: dict[str, Any]) -> bool | None:
+    """What the manifest itself says about side effects, in any of the usual spellings (None if silent)."""
+    for k in ("state_modifying", "mutating", "modifies_state", "is_mutating", "stateful", "writes", "destructive"):
+        if isinstance(spec.get(k), bool):
+            return spec[k]
+    for k in ("read_only", "readOnly", "readonly", "is_read_only", "safe"):
+        if isinstance(spec.get(k), bool):
+            return not spec[k]
+    ann = spec.get("annotations")
+    if isinstance(ann, dict):  # MCP tool annotations
+        if isinstance(ann.get("readOnlyHint"), bool):
+            return not ann["readOnlyHint"]
+        if isinstance(ann.get("destructiveHint"), bool) and ann["destructiveHint"]:
+            return True
+    for k in _EFFECT_KEYS:
+        v = spec.get(k)
+        if isinstance(v, bool) and k.startswith("side"):
+            return v
+        if isinstance(v, str):
+            s = v.strip().lower().replace(" ", "_")
+            if s in _WRITE:
+                return True
+            if s in _READ:
+                return False
+    desc = str(spec.get("description", "")).lower()
+    if re.search(r"\bread[- ]only\b|\bno side[- ]effects?\b|\bdoes not (?:modify|change)\b", desc):
+        return False
+    if re.search(r"\bstate[- ](?:modifying|changing)\b|\bside[- ]effects?\b|\bmodifies\b", desc):
         return True
-    return bool(spec.get("state_modifying") or spec.get("mutating"))
+    return None
+
+
+def is_state_modifying(spec: dict[str, Any]) -> bool:
+    declared = _declared_effect(spec)
+    if declared is not None:
+        return declared
+    # undeclared: judge by the verb in the tool's name; an unknown verb is treated as state-changing,
+    # the safe side for "never repeat a state-changing call"
+    verb = re.split(r"[_\-\s.]+|(?<=[a-z])(?=[A-Z])", str(spec.get("name", "")).strip())[0].lower()
+    if verb in _READ_VERBS:
+        return False
+    return bool(verb)
+
+
+def normalize_tool(spec: dict[str, Any]) -> dict[str, Any]:
+    """OpenAI-style {"type": "function", "function": {...}}, Anthropic/MCP input_schema, missing pieces -> the
+    internal ToolSpec, with an explicit side_effect so every later check agrees."""
+    s = dict(spec)
+    if isinstance(s.get("function"), dict):  # OpenAI wrapper
+        s = {**{k: v for k, v in s.items() if k not in ("function", "type")}, **s["function"]}
+    params = next((s[k] for k in ("parameters", "input_schema", "inputSchema", "schema", "args_schema", "arguments")
+                   if isinstance(s.get(k), dict)), {})
+    params = {"type": "object", **params}
+    params.setdefault("properties", {})
+    params.setdefault("required", [])
+    s["parameters"] = params
+    s.setdefault("description", "")
+    s["side_effect"] = "state_modifying" if is_state_modifying(s) else "read_only"
+    return s
 
 
 def _type_ok(value: Any, schema: dict[str, Any]) -> bool:

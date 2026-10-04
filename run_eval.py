@@ -18,6 +18,7 @@ from audient.baseline import HalfDuplexAgent
 from audient.harness.runner import run_scenario
 from audient.harness.scorer import aggregate, score
 from audient.perception import ProcessPerception
+from audient.protocol import normalize_tool
 
 ROOT = Path(__file__).resolve().parent
 
@@ -33,7 +34,7 @@ def fmt_trace(run: dict) -> str:
     for r in run["trace"]:
         body = {k: v for k, v in r.items() if k not in ("t", "dir", "type", "state_snapshot")}
         if r["type"] == "tool_manifest":
-            body = {"tools": [t["name"] for t in r["tools"]]}
+            body = {"tools": [normalize_tool(t)["name"] for t in r["tools"]]}
         snap = r.get("state_snapshot")
         extra = f"  snapshot={{intent:{snap['intent']}, slots:{snap['slots']}, status:{snap['status']}}}" if snap else ""
         lines.append(f"{r['t']:8.4f}s  {'USER/ENV ->' if r['dir'] == 'in' else '<- AGENT  '} {r['type']:<15} "
@@ -52,7 +53,8 @@ def main() -> int:
     perception = ProcessPerception()  # OCR/ASR in their own process: no GIL contention with the agent
     t0 = time.perf_counter()
     perception.warmup()  # setup/warm-up hook (not part of any scenario timeline)
-    print(f"warm-up: {time.perf_counter() - t0:.1f}s (ASR model available: {perception.asr_available})")
+    print(f"warm-up: {time.perf_counter() - t0:.1f}s (ASR model available: {perception.asr_available}"
+          + (f"; {perception.asr_error}" if perception.asr_error else "") + ")")
     agents = {"audient": RealtimeAgent, "baseline": HalfDuplexAgent}
     names = ["audient", "baseline"] if a.agent == "both" else [a.agent]
     out = Path(a.out)

@@ -2,20 +2,453 @@
  "audient": {
   "aggregate": {
    "weighted_score": 100.0,
-   "weighted_base_score": 100.0,
-   "scenarios_all_checks_pass": 15,
+   "weighted_base_score": 97.44,
+   "scenarios_all_checks_pass": 16,
    "category_pct": {
     "task": 100.0,
     "interrupt": 100.0,
-    "latency": 100.0,
+    "latency": 88.8,
     "safety": 100.0
    },
-   "scenarios": 15,
-   "mean_first_response_ms": 1.83,
+   "scenarios": 21,
+   "mean_first_response_ms": 255.9,
    "duplicate_commit_scenarios": 0,
    "false_claim_scenarios": 0
   },
   "scenarios": [
+   {
+    "id": "A01_audio_request",
+    "modality": "audio",
+    "score": 100.0,
+    "base": 88.58,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.505,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Delhi', 'date': '2026-10-02', 'passengers': 2}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Delhi'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Delhi')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1116.1 ms",
+       0.5051108571428572
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1116.06
+    ],
+    "mean_first_response_ms": 1116.06,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 1.117,
+    "harness_delivery_lag_ms": 0.0
+   },
+   {
+    "id": "A02_audio_self_correction",
+    "modality": "audio",
+    "score": 100.0,
+    "base": 93.76,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 0.584,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Bangalore', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Bangalore'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Bangalore')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled search_flights {'destination': 'Delhi'} within 1500 ms of the clip arriving (includes speech recognition) (got [928.8] ms)",
+       true
+      ],
+      [
+       "no stale re-run of search_flights {'destination': 'Delhi'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1027.6 ms",
+       0.5556731428571428
+      ],
+      [
+       "first response 928.8 ms",
+       0.6121331428571428
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1027.57,
+     928.77
+    ],
+    "mean_first_response_ms": 978.17,
+    "cancel_after_correction_ms": [
+     928.8
+    ],
+    "call_runtime_before_cancel_ms": [
+     1401.2
+    ],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 1.957,
+    "harness_delivery_lag_ms": 0.13
+   },
+   {
+    "id": "A03_audio_mid_booking_adjust",
+    "modality": "audio",
+    "score": 100.0,
+    "base": 92.99,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 0.533,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "book_flight committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "commit book_flight {'passengers': 3}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'book_flight', 'slots': {'passengers': 3}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('BK')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled book_flight {'passengers': 2} within 1500 ms of the clip arriving (includes speech recognition) (got [987.7] ms)",
+       true
+      ],
+      [
+       "no stale re-run of book_flight {'passengers': 2}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1147.8 ms",
+       0.486989142857143
+      ],
+      [
+       "first response 988.0 ms",
+       0.578304
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1147.77,
+     987.97
+    ],
+    "mean_first_response_ms": 1067.87,
+    "cancel_after_correction_ms": [
+     987.7
+    ],
+    "call_runtime_before_cancel_ms": [
+     1139.7
+    ],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 2.137,
+    "harness_delivery_lag_ms": 0.03
+   },
+   {
+    "id": "A04_audio_silence",
+    "modality": "audio",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "asked a clarification",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=99",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 2.0 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1.96
+    ],
+    "mean_first_response_ms": 1.96,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.0
+   },
+   {
+    "id": "A05_audio_in_car_change",
+    "modality": "audio",
+    "score": 100.0,
+    "base": 93.6,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 0.574,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call get_route {'destination': 'airport'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'get_route', 'slots': {'destination': 'airport'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('airport')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled get_route {'destination': 'office'} within 1500 ms of the clip arriving (includes speech recognition) (got [1058.8] ms)",
+       true
+      ],
+      [
+       "no stale re-run of get_route {'destination': 'office'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 933.5 ms",
+       0.6094474285714285
+      ],
+      [
+       "first response 1058.8 ms",
+       0.5378159999999998
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     933.47,
+     1058.82
+    ],
+    "mean_first_response_ms": 996.14,
+    "cancel_after_correction_ms": [
+     1058.8
+    ],
+    "call_runtime_before_cancel_ms": [
+     1425.3
+    ],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 1.993,
+    "harness_delivery_lag_ms": 0.08
+   },
+   {
+    "id": "A06_audio_support_ticket",
+    "modality": "audio",
+    "score": 100.0,
+    "base": 87.52,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.459,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "create_ticket committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "commit create_ticket {'device': 'washing machine', 'priority': 'high'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'create_ticket', 'status': 'completed'}",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 1196.5 ms",
+       0.45916514285714294
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double create_ticket (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1196.46
+    ],
+    "mean_first_response_ms": 1196.46,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 1.197,
+    "harness_delivery_lag_ms": 0.0
+   },
    {
     "id": "T01_basic_search",
     "modality": "text",
@@ -45,7 +478,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 9.6 ms",
+       "first response 1.2 ms",
        1.0
       ]
      ],
@@ -65,14 +498,15 @@
      ]
     },
     "first_response_ms": [
-     9.59
+     1.17
     ],
-    "mean_first_response_ms": 9.59,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1.17,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.01,
-    "harness_delivery_lag_ms": 0.01
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T02_barge_in_self_correction",
@@ -103,7 +537,7 @@
      ],
      "interrupt": [
       [
-       "cancelled search_flights {'destination': 'Delhi'} within 15 ms (got [0.89] ms)",
+       "cancelled search_flights {'destination': 'Delhi'} within 15 ms (got [0.49] ms)",
        true
       ],
       [
@@ -117,11 +551,11 @@
      ],
      "latency": [
       [
-       "first response 0.9 ms",
+       "first response 0.8 ms",
        1.0
       ],
       [
-       "first response 1.0 ms",
+       "first response 0.6 ms",
        1.0
       ]
      ],
@@ -141,17 +575,20 @@
      ]
     },
     "first_response_ms": [
-     0.89,
-     0.99
+     0.77,
+     0.59
     ],
-    "mean_first_response_ms": 0.94,
-    "cancel_latency_ms": [
-     800.0
+    "mean_first_response_ms": 0.68,
+    "cancel_after_correction_ms": [
+     0.49
+    ],
+    "call_runtime_before_cancel_ms": [
+     799.7
     ],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.003,
-    "harness_delivery_lag_ms": 0.12
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.05
    },
    {
     "id": "T03_chained_booking",
@@ -190,7 +627,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1.2 ms",
+       "first response 1.6 ms",
        1.0
       ]
      ],
@@ -214,14 +651,15 @@
      ]
     },
     "first_response_ms": [
-     1.19
+     1.56
     ],
-    "mean_first_response_ms": 1.19,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1.56,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 1,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "harness_delivery_lag_ms": 0.04
    },
    {
     "id": "T04_mid_booking_adjust",
@@ -256,7 +694,7 @@
      ],
      "interrupt": [
       [
-       "cancelled book_flight {'passengers': 2} within 15 ms (got [1.09] ms)",
+       "cancelled book_flight {'passengers': 2} within 15 ms (got [0.99] ms)",
        true
       ],
       [
@@ -270,11 +708,11 @@
      ],
      "latency": [
       [
-       "first response 1.2 ms",
+       "first response 1.4 ms",
        1.0
       ],
       [
-       "first response 1.4 ms",
+       "first response 1.2 ms",
        1.0
       ]
      ],
@@ -298,12 +736,15 @@
      ]
     },
     "first_response_ms": [
-     1.19,
-     1.39
+     1.37,
+     1.19
     ],
-    "mean_first_response_ms": 1.29,
-    "cancel_latency_ms": [
-     499.7
+    "mean_first_response_ms": 1.28,
+    "cancel_after_correction_ms": [
+     0.99
+    ],
+    "call_runtime_before_cancel_ms": [
+     499.4
     ],
     "commits": 1,
     "false_claims": 0,
@@ -349,11 +790,11 @@
      ],
      "latency": [
       [
-       "first response 0.7 ms",
+       "first response 0.9 ms",
        1.0
       ],
       [
-       "first response 0.6 ms",
+       "first response 0.8 ms",
        1.0
       ]
      ],
@@ -373,15 +814,16 @@
      ]
     },
     "first_response_ms": [
-     0.69,
-     0.59
+     0.87,
+     0.79
     ],
-    "mean_first_response_ms": 0.64,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 0.83,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T06_retry_after_fault",
@@ -412,7 +854,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1.3 ms",
+       "first response 1.4 ms",
        1.0
       ]
      ],
@@ -432,14 +874,15 @@
      ]
     },
     "first_response_ms": [
-     1.29
+     1.37
     ],
-    "mean_first_response_ms": 1.29,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1.37,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T07_unseen_tool",
@@ -474,7 +917,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1.4 ms",
+       "first response 1.3 ms",
        1.0
       ]
      ],
@@ -498,14 +941,15 @@
      ]
     },
     "first_response_ms": [
-     1.39
+     1.27
     ],
-    "mean_first_response_ms": 1.39,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1.27,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 1,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T08_user_cancel",
@@ -566,17 +1010,20 @@
      ]
     },
     "first_response_ms": [
-     0.69,
+     0.67,
      0.49
     ],
-    "mean_first_response_ms": 0.59,
-    "cancel_latency_ms": [
+    "mean_first_response_ms": 0.58,
+    "cancel_after_correction_ms": [
+     0.49
+    ],
+    "call_runtime_before_cancel_ms": [
      499.8
     ],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.05
+    "harness_delivery_lag_ms": 0.04
    },
    {
     "id": "T09_acoustic_pause_filler",
@@ -617,7 +1064,7 @@
      ],
      "latency": [
       [
-       "first response 0.9 ms",
+       "first response 1.0 ms",
        1.0
       ]
      ],
@@ -637,14 +1084,15 @@
      ]
     },
     "first_response_ms": [
-     0.88
+     0.98
     ],
-    "mean_first_response_ms": 0.88,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 0.98,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.02
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T10_stutter_false_start",
@@ -679,7 +1127,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1.1 ms",
+       "first response 1.2 ms",
        1.0
       ]
      ],
@@ -703,14 +1151,15 @@
      ]
     },
     "first_response_ms": [
-     1.09
+     1.17
     ],
-    "mean_first_response_ms": 1.09,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1.17,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T11_speculative_prefetch",
@@ -745,7 +1194,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 0.9 ms",
+       "first response 0.8 ms",
        1.0
       ]
      ],
@@ -765,14 +1214,15 @@
      ]
     },
     "first_response_ms": [
-     0.94
+     0.85
     ],
-    "mean_first_response_ms": 0.94,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 0.85,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.06
+    "harness_delivery_lag_ms": 0.05
    },
    {
     "id": "T12_in_car_destination_change",
@@ -821,7 +1271,7 @@
        1.0
       ],
       [
-       "first response 0.8 ms",
+       "first response 0.7 ms",
        1.0
       ]
      ],
@@ -841,17 +1291,20 @@
      ]
     },
     "first_response_ms": [
-     0.69,
-     0.79
+     0.67,
+     0.69
     ],
-    "mean_first_response_ms": 0.74,
-    "cancel_latency_ms": [
+    "mean_first_response_ms": 0.68,
+    "cancel_after_correction_ms": [
+     0.59
+    ],
+    "call_runtime_before_cancel_ms": [
      499.9
     ],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.05
+    "harness_delivery_lag_ms": 0.04
    },
    {
     "id": "V01_frame_error_code",
@@ -882,7 +1335,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 2.6 ms",
+       "first response 1.7 ms",
        1.0
       ]
      ],
@@ -902,14 +1355,15 @@
      ]
     },
     "first_response_ms": [
-     2.61
+     1.65
     ],
-    "mean_first_response_ms": 2.61,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1.65,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 1.096,
-    "harness_delivery_lag_ms": 10.89
+    "wall_s": 1.054,
+    "harness_delivery_lag_ms": 6.05
    },
    {
     "id": "V02_frame_too_dark",
@@ -942,7 +1396,7 @@
      ],
      "latency": [
       [
-       "first response 1.5 ms",
+       "first response 1.1 ms",
        1.0
       ]
      ],
@@ -962,14 +1416,15 @@
      ]
     },
     "first_response_ms": [
-     1.47
+     1.14
     ],
-    "mean_first_response_ms": 1.47,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1.14,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.038,
-    "harness_delivery_lag_ms": 0.03
+    "wall_s": 0.036,
+    "harness_delivery_lag_ms": 0.06
    },
    {
     "id": "V03_multimodal_self_repair",
@@ -1000,7 +1455,7 @@
      ],
      "interrupt": [
       [
-       "cancelled lookup_manual {'error_code': 'E20'} within 15 ms (got [2.88] ms)",
+       "cancelled lookup_manual {'error_code': 'E20'} within 15 ms (got [2.79] ms)",
        true
       ],
       [
@@ -1014,11 +1469,11 @@
      ],
      "latency": [
       [
-       "first response 1.5 ms",
+       "first response 0.8 ms",
        1.0
       ],
       [
-       "first response 4.1 ms",
+       "first response 3.2 ms",
        1.0
       ]
      ],
@@ -1038,42 +1493,466 @@
      ]
     },
     "first_response_ms": [
-     1.47,
-     4.08
+     0.78,
+     3.19
     ],
-    "mean_first_response_ms": 2.78,
-    "cancel_latency_ms": [
-     616.6
+    "mean_first_response_ms": 1.99,
+    "cancel_after_correction_ms": [
+     2.79
+    ],
+    "call_runtime_before_cancel_ms": [
+     609.8
     ],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 1.297,
-    "harness_delivery_lag_ms": 15.22
+    "wall_s": 1.222,
+    "harness_delivery_lag_ms": 7.81
    }
   ]
  },
  "baseline": {
   "aggregate": {
-   "weighted_score": 86.36,
-   "weighted_base_score": 75.08,
-   "scenarios_all_checks_pass": 1,
+   "weighted_score": 87.13,
+   "weighted_base_score": 75.6,
+   "scenarios_all_checks_pass": 2,
    "category_pct": {
-    "task": 87.8,
-    "interrupt": 68.8,
-    "latency": 35.7,
-    "safety": 98.3
+    "task": 90.1,
+    "interrupt": 70.9,
+    "latency": 29.7,
+    "safety": 97.6
    },
-   "scenarios": 15,
-   "mean_first_response_ms": 1492.98,
-   "duplicate_commit_scenarios": 1,
+   "scenarios": 21,
+   "mean_first_response_ms": 1995.24,
+   "duplicate_commit_scenarios": 2,
    "false_claim_scenarios": 0
   },
   "scenarios": [
    {
+    "id": "A01_audio_request",
+    "modality": "audio",
+    "score": 92.31,
+    "base": 76.92,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Delhi', 'date': '2026-10-02', 'passengers': 2}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Delhi'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Delhi')",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 2725.5 ms",
+       0.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     2725.55
+    ],
+    "mean_first_response_ms": 2725.55,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 1.126,
+    "harness_delivery_lag_ms": 0.0
+   },
+   {
+    "id": "A02_audio_self_correction",
+    "modality": "audio",
+    "score": 88.0,
+    "base": 73.33,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 0.667,
+     "latency": 0.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call search_flights {'origin': 'Mumbai', 'destination': 'Bangalore', 'date': '2026-10-02'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'search_flights', 'slots': {'destination': 'Bangalore'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('Bangalore')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled search_flights {'destination': 'Delhi'} within 1500 ms of the clip arriving (includes speech recognition) (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of search_flights {'destination': 'Delhi'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 4938.9 ms",
+       0.0
+      ],
+      [
+       "first response 3438.8 ms",
+       0.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     4938.86,
+     3438.83
+    ],
+    "mean_first_response_ms": 4188.85,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 1.94,
+    "harness_delivery_lag_ms": 0.07
+   },
+   {
+    "id": "A03_audio_mid_booking_adjust",
+    "modality": "audio",
+    "score": 73.0,
+    "base": 60.83,
+    "quality": 1.2,
+    "categories": {
+     "task": 0.75,
+     "interrupt": 0.667,
+     "latency": 0.0,
+     "safety": 0.75
+    },
+    "checks": {
+     "task": [
+      [
+       "book_flight committed exactly 1x (got 2)",
+       false
+      ],
+      [
+       "commit book_flight {'passengers': 3}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'book_flight', 'slots': {'passengers': 3}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('BK')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled book_flight {'passengers': 2} within 1500 ms of the clip arriving (includes speech recognition) (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of book_flight {'passengers': 2}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 6804.0 ms",
+       0.0
+      ],
+      [
+       "first response 3904.0 ms",
+       0.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double book_flight (2 commits, expected 1)",
+       false
+      ]
+     ]
+    },
+    "first_response_ms": [
+     6803.97,
+     3903.98
+    ],
+    "mean_first_response_ms": 5353.97,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 2,
+    "false_claims": 0,
+    "wall_s": 2.205,
+    "harness_delivery_lag_ms": 0.02
+   },
+   {
+    "id": "A04_audio_silence",
+    "modality": "audio",
+    "score": 100.0,
+    "base": 100.0,
+    "quality": 1.1,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 1.0,
+     "latency": 1.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "asked a clarification",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "no premature tool call before t=99",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 1.6 ms",
+       1.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     1.57
+    ],
+    "mean_first_response_ms": 1.57,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.0
+   },
+   {
+    "id": "A05_audio_in_car_change",
+    "modality": "audio",
+    "score": 88.0,
+    "base": 73.33,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "interrupt": 0.667,
+     "latency": 0.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "effective call get_route {'destination': 'airport'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'get_route', 'slots': {'destination': 'airport'}, 'status': 'completed'}",
+       true
+      ],
+      [
+       "response grounded ('airport')",
+       true
+      ]
+     ],
+     "interrupt": [
+      [
+       "cancelled get_route {'destination': 'office'} within 1500 ms of the clip arriving (includes speech recognition) (got [] ms)",
+       false
+      ],
+      [
+       "no stale re-run of get_route {'destination': 'office'}",
+       true
+      ],
+      [
+       "snapshot reflects the correction",
+       true
+      ]
+     ],
+     "latency": [
+      [
+       "first response 5050.8 ms",
+       0.0
+      ],
+      [
+       "first response 3750.7 ms",
+       0.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     5050.77,
+     3750.73
+    ],
+    "mean_first_response_ms": 4400.75,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 0,
+    "false_claims": 0,
+    "wall_s": 2.051,
+    "harness_delivery_lag_ms": 0.07
+   },
+   {
+    "id": "A06_audio_support_ticket",
+    "modality": "audio",
+    "score": 92.31,
+    "base": 76.92,
+    "quality": 1.2,
+    "categories": {
+     "task": 1.0,
+     "latency": 0.0,
+     "safety": 1.0
+    },
+    "checks": {
+     "task": [
+      [
+       "create_ticket committed exactly 1x (got 1)",
+       true
+      ],
+      [
+       "commit create_ticket {'device': 'washing machine', 'priority': 'high'}",
+       true
+      ],
+      [
+       "final snapshot {'intent': 'create_ticket', 'status': 'completed'}",
+       true
+      ]
+     ],
+     "interrupt": [],
+     "latency": [
+      [
+       "first response 2640.4 ms",
+       0.0
+      ]
+     ],
+     "safety": [
+      [
+       "protocol errors: []",
+       true
+      ],
+      [
+       "zero duplicate state-changing commits",
+       true
+      ],
+      [
+       "no duplicate state-changing calls",
+       true
+      ],
+      [
+       "no double create_ticket (1 commits, expected 1)",
+       true
+      ]
+     ]
+    },
+    "first_response_ms": [
+     2640.37
+    ],
+    "mean_first_response_ms": 2640.37,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
+    "commits": 1,
+    "false_claims": 0,
+    "wall_s": 1.441,
+    "harness_delivery_lag_ms": 0.0
+   },
+   {
     "id": "T01_basic_search",
     "modality": "text",
     "score": 98.61,
-    "base": 82.17,
+    "base": 82.18,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
@@ -1098,8 +1977,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1601.8 ms",
-       0.2275560000000001
+       "first response 1601.6 ms",
+       0.22767657142857145
       ]
      ],
      "safety": [
@@ -1118,20 +1997,21 @@
      ]
     },
     "first_response_ms": [
-     1601.78
+     1601.57
     ],
-    "mean_first_response_ms": 1601.78,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1601.57,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.02
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T02_barge_in_self_correction",
     "modality": "text",
     "score": 96.21,
-    "base": 80.17,
+    "base": 80.18,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
@@ -1170,12 +2050,12 @@
      ],
      "latency": [
       [
-       "first response 1602.2 ms",
-       0.2273240000000002
+       "first response 1601.6 ms",
+       0.227676
       ],
       [
-       "first response 802.2 ms",
-       0.6844640000000001
+       "first response 801.6 ms",
+       0.6848051428571429
       ]
      ],
      "safety": [
@@ -1194,15 +2074,16 @@
      ]
     },
     "first_response_ms": [
-     1602.18,
-     802.19
+     1601.57,
+     801.59
     ],
-    "mean_first_response_ms": 1202.19,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1201.58,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.003,
-    "harness_delivery_lag_ms": 0.05
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.04
    },
    {
     "id": "T03_chained_booking",
@@ -1241,7 +2122,7 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 3401.6 ms",
+       "first response 3401.2 ms",
        0.0
       ]
      ],
@@ -1265,14 +2146,15 @@
      ]
     },
     "first_response_ms": [
-     3401.59
+     3401.17
     ],
-    "mean_first_response_ms": 3401.59,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 3401.17,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 1,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T04_mid_booking_adjust",
@@ -1321,12 +2203,12 @@
      ],
      "latency": [
       [
-       "first response 3402.5 ms",
+       "first response 3402.3 ms",
        0.0
       ],
       [
-       "first response 1302.5 ms",
-       0.39858285714285735
+       "first response 1302.3 ms",
+       0.3986914285714287
       ]
      ],
      "safety": [
@@ -1349,15 +2231,16 @@
      ]
     },
     "first_response_ms": [
-     3402.48,
-     1302.48
+     3402.26,
+     1302.29
     ],
-    "mean_first_response_ms": 2352.48,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 2352.27,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 2,
     "false_claims": 0,
     "wall_s": 0.003,
-    "harness_delivery_lag_ms": 0.03
+    "harness_delivery_lag_ms": 0.04
    },
    {
     "id": "T05_clarify_missing_slot",
@@ -1398,12 +2281,12 @@
      ],
      "latency": [
       [
-       "first response 1.7 ms",
+       "first response 0.6 ms",
        1.0
       ],
       [
-       "first response 1601.1 ms",
-       0.2279542857142859
+       "first response 1600.7 ms",
+       0.22817885714285724
       ]
      ],
      "safety": [
@@ -1422,21 +2305,22 @@
      ]
     },
     "first_response_ms": [
-     1.67,
-     1601.08
+     0.57,
+     1600.69
     ],
-    "mean_first_response_ms": 801.37,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 800.63,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.003,
+    "wall_s": 0.002,
     "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T06_retry_after_fault",
     "modality": "text",
     "score": 22.71,
-    "base": 20.64,
+    "base": 20.65,
     "quality": 1.1,
     "categories": {
      "task": 0.0,
@@ -1461,8 +2345,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1601.4 ms",
-       0.22779085714285707
+       "first response 1600.9 ms",
+       0.22807428571428556
       ]
      ],
      "safety": [
@@ -1481,13 +2365,14 @@
      ]
     },
     "first_response_ms": [
-     1601.37
+     1600.87
     ],
-    "mean_first_response_ms": 1601.37,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1600.87,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.002,
+    "wall_s": 0.001,
     "harness_delivery_lag_ms": 0.03
    },
    {
@@ -1523,8 +2408,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1501.4 ms",
-       0.28492171428571444
+       "first response 1501.2 ms",
+       0.28504685714285727
       ]
      ],
      "safety": [
@@ -1547,14 +2432,15 @@
      ]
     },
     "first_response_ms": [
-     1501.39
+     1501.17
     ],
-    "mean_first_response_ms": 1501.39,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1501.17,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 1,
     "false_claims": 0,
-    "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.01
+    "wall_s": 0.001,
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T08_user_cancel",
@@ -1591,12 +2477,12 @@
      ],
      "latency": [
       [
-       "first response 1402.0 ms",
-       0.341724
+       "first response 1401.8 ms",
+       0.34185600000000005
       ],
       [
-       "first response 902.0 ms",
-       0.6274360000000001
+       "first response 901.8 ms",
+       0.6275491428571429
       ]
      ],
      "safety": [
@@ -1615,15 +2501,16 @@
      ]
     },
     "first_response_ms": [
-     1401.98,
-     901.99
+     1401.75,
+     901.79
     ],
-    "mean_first_response_ms": 1151.98,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1151.77,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.07
+    "harness_delivery_lag_ms": 0.08
    },
    {
     "id": "T09_acoustic_pause_filler",
@@ -1664,8 +2551,8 @@
      ],
      "latency": [
       [
-       "first response 1601.2 ms",
-       0.22791028571428573
+       "first response 1601.1 ms",
+       0.2279702857142858
       ]
      ],
      "safety": [
@@ -1684,19 +2571,20 @@
      ]
     },
     "first_response_ms": [
-     1601.16
+     1601.05
     ],
-    "mean_first_response_ms": 1601.16,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1601.05,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.003,
-    "harness_delivery_lag_ms": 0.04
+    "wall_s": 0.002,
+    "harness_delivery_lag_ms": 0.05
    },
    {
     "id": "T10_stutter_false_start",
     "modality": "text",
-    "score": 98.61,
+    "score": 98.62,
     "base": 82.18,
     "quality": 1.2,
     "categories": {
@@ -1726,8 +2614,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1601.6 ms",
-       0.22766628571428582
+       "first response 1601.3 ms",
+       0.2278485714285713
       ]
      ],
      "safety": [
@@ -1750,14 +2638,15 @@
      ]
     },
     "first_response_ms": [
-     1601.58
+     1601.27
     ],
-    "mean_first_response_ms": 1601.58,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1601.27,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
-    "harness_delivery_lag_ms": 0.02
+    "harness_delivery_lag_ms": 0.04
    },
    {
     "id": "T11_speculative_prefetch",
@@ -1792,8 +2681,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1601.0 ms",
-       0.2280040000000001
+       "first response 1601.1 ms",
+       0.22794685714285712
       ]
      ],
      "safety": [
@@ -1812,14 +2701,15 @@
      ]
     },
     "first_response_ms": [
-     1600.99
+     1601.09
     ],
-    "mean_first_response_ms": 1600.99,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1601.09,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.001,
-    "harness_delivery_lag_ms": 0.01
+    "harness_delivery_lag_ms": 0.03
    },
    {
     "id": "T12_in_car_destination_change",
@@ -1864,12 +2754,12 @@
      ],
      "latency": [
       [
-       "first response 1401.3 ms",
-       0.3421200000000001
+       "first response 1401.2 ms",
+       0.34219085714285724
       ],
       [
-       "first response 901.3 ms",
-       0.6278331428571429
+       "first response 901.2 ms",
+       0.6278897142857143
       ]
      ],
      "safety": [
@@ -1888,11 +2778,12 @@
      ]
     },
     "first_response_ms": [
-     1401.29,
-     901.29
+     1401.17,
+     901.19
     ],
-    "mean_first_response_ms": 1151.29,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1151.18,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
     "wall_s": 0.002,
@@ -1901,12 +2792,12 @@
    {
     "id": "V01_frame_error_code",
     "modality": "visual",
-    "score": 98.67,
-    "base": 82.22,
+    "score": 97.5,
+    "base": 81.25,
     "quality": 1.2,
     "categories": {
      "task": 1.0,
-     "latency": 0.23,
+     "latency": 0.187,
      "safety": 1.0
     },
     "checks": {
@@ -1927,8 +2818,8 @@
      "interrupt": [],
      "latency": [
       [
-       "first response 1598.1 ms",
-       0.2296611428571429
+       "first response 1672.0 ms",
+       0.1874325714285714
       ]
      ],
      "safety": [
@@ -1947,13 +2838,14 @@
      ]
     },
     "first_response_ms": [
-     1598.09
+     1671.99
     ],
-    "mean_first_response_ms": 1598.09,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1671.99,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.598,
+    "wall_s": 0.672,
     "harness_delivery_lag_ms": 0.01
    },
    {
@@ -1987,7 +2879,7 @@
      ],
      "latency": [
       [
-       "first response 39.1 ms",
+       "first response 36.6 ms",
        1.0
       ]
      ],
@@ -2007,25 +2899,26 @@
      ]
     },
     "first_response_ms": [
-     39.07
+     36.58
     ],
-    "mean_first_response_ms": 39.07,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 36.58,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 0.039,
-    "harness_delivery_lag_ms": 0.03
+    "wall_s": 0.037,
+    "harness_delivery_lag_ms": 0.02
    },
    {
     "id": "V03_multimodal_self_repair",
     "modality": "visual",
-    "score": 60.82,
-    "base": 55.29,
+    "score": 59.63,
+    "base": 54.21,
     "quality": 1.1,
     "categories": {
      "task": 0.667,
      "interrupt": 0.333,
-     "latency": 0.464,
+     "latency": 0.392,
      "safety": 1.0
     },
     "checks": {
@@ -2059,12 +2952,12 @@
      ],
      "latency": [
       [
-       "first response 1488.4 ms",
-       0.2923474285714286
+       "first response 1629.6 ms",
+       0.211661142857143
       ],
       [
-       "first response 888.4 ms",
-       0.6352131428571428
+       "first response 1000.0 ms",
+       0.5714057142857143
       ]
      ],
      "safety": [
@@ -2083,15 +2976,16 @@
      ]
     },
     "first_response_ms": [
-     1488.39,
-     888.38
+     1629.59,
+     1000.04
     ],
-    "mean_first_response_ms": 1188.38,
-    "cancel_latency_ms": [],
+    "mean_first_response_ms": 1314.82,
+    "cancel_after_correction_ms": [],
+    "call_runtime_before_cancel_ms": [],
     "commits": 0,
     "false_claims": 0,
-    "wall_s": 1.014,
-    "harness_delivery_lag_ms": 0.08
+    "wall_s": 1.237,
+    "harness_delivery_lag_ms": 129.56
    }
   ]
  }

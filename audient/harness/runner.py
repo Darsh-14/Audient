@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
-from ..protocol import adapt_event
+from ..protocol import adapt_event, normalize_tool
 from ..vclock import VirtualEventLoop
 from .mock_env import MockEnv
 
@@ -38,10 +38,13 @@ async def _run(scn: dict, agent: Any) -> dict:
         trace.append({"dir": "in", **ev, "t_recv": round(asyncio.get_running_loop().time(), 6)})
         inbox.put_nowait(ev)
 
-    env = MockEnv(scn["manifest"], scn.get("env", {}), deliver)
+    env = MockEnv([normalize_tool(t) for t in scn["manifest"]], scn.get("env", {}), deliver)
     events = [{"t": 0.0, "type": "tool_manifest", "tools": scn["manifest"]}] + scn["events"]
     for ev in events:
+        raw_tools = ev.get("tools") if ev.get("type") == "tool_manifest" else None
         ev = _resolve_paths(adapt_event(ev))
+        if raw_tools is not None:
+            ev["tools"] = raw_tools  # the agent gets the manifest exactly as the scenario states it
         loop.call_at(float(ev["t"]), deliver, ev)
     last_t = max(float(e["t"]) for e in events)
 

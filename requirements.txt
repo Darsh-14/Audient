@@ -1,7 +1,10 @@
-# Core (pinned; verified on Python 3.13.3 / Windows 11)
-numpy==2.3.3
+# Core (pinned; verified on Python 3.10.22, 3.12.15 and 3.13.3 / Windows 11).
+# numpy 2.3 and onnxruntime 1.30 need Python 3.11+, so Python 3.10 gets the newest releases that support it.
+numpy==2.3.3; python_version >= "3.11"
+numpy==2.2.6; python_version < "3.11"
 pillow==11.2.1
 rapidocr_onnxruntime==1.2.3
-onnxruntime==1.30.0
+onnxruntime==1.30.0; python_version >= "3.11"
+onnxruntime==1.23.2; python_version < "3.11"
 opencv-python==5.0.0.93
 soundfile==0.14.0

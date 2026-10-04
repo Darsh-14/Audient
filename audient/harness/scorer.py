@@ -10,7 +10,7 @@ import json
 import re
 from typing import Any
 
-from ..protocol import is_state_modifying, validate_action
+from ..protocol import is_state_modifying, normalize_tool, validate_action
 
 WEIGHTS = {"task": 40, "interrupt": 35, "latency": 15, "safety": 10}
 GRACE_S = 0.015        # cancellation grace period
@@ -31,7 +31,7 @@ def _match(args: dict, want: dict) -> bool:
 
 def score(scn: dict, run: dict) -> dict[str, Any]:
     exp = scn.get("expect", {})
-    tools = {t["name"]: t for t in scn["manifest"]}
+    tools = {t["name"]: t for t in map(normalize_tool, scn["manifest"])}
     trace = run["trace"]
     outs = [r for r in trace if r["dir"] == "out"]
     calls = {r["call_id"]: r for r in outs if r["type"] == "tool_call"}
@@ -67,14 +67,18 @@ def score(scn: dict, run: dict) -> dict[str, Any]:
         checks["task"].append((f"final answer by t={exp['final_by']}s", bool(fr) and fr[0] <= exp["final_by"]))
 
     # ---- interruption recovery
+    reaction: list[float] = []  # correction (or spoken clip) arriving -> cancel sent
     for w in exp.get("cancel", []):
         hit = [cid for cid, c in calls.items() if c["tool"] == w["tool"] and _match(c["args"], w["args"])
                and c["t"] <= w["by"] + 1e-9]
         base = next((_recv(r) for r in trace if r["dir"] == "in" and r["type"] == "transcript"
                      and abs(r["t"] - w["by"]) < 1e-6), w["by"])
         lat = [cancels[cid] - base for cid in hit if cid in cancels]
-        ok = bool(lat) and all(-5.0 <= x <= GRACE_S for x in lat)
-        checks["interrupt"].append((f"cancelled {w['tool']} {w['args']} within {GRACE_S * 1000:.0f} ms "
+        reaction += lat
+        grace = w.get("grace_s", GRACE_S)  # spoken corrections: grace covers transcribing the clip first
+        ok = bool(lat) and all(-5.0 <= x <= grace for x in lat)
+        how = " of the clip arriving (includes speech recognition)" if "grace_s" in w else ""
+        checks["interrupt"].append((f"cancelled {w['tool']} {w['args']} within {grace * 1000:.0f} ms{how} "
                                     f"(got {[round(x * 1000, 2) for x in lat]} ms)", ok))
     for w in exp.get("no_calls", []):
         stale = [cid for cid, c in calls.items() if c["tool"] == w["tool"] and _match(c["args"], w["args"])
@@ -92,8 +96,8 @@ def score(scn: dict, run: dict) -> dict[str, Any]:
 
     # ---- latency: first substantive spoken action after each user turn end / interruption
     lats = []
-    inputs = [r for r in trace if r["dir"] == "in" and (
-        (r["type"] == "transcript" and r.get("end_of_turn", True) and r.get("measure", True)))]
+    inputs = [r for r in trace if r["dir"] == "in" and r["type"] in ("transcript", "audio")
+              and r.get("end_of_turn", True) and r.get("measure", True)]
     for ev in inputs:
         nxt = [r["t"] for r in outs if r["t"] >= _recv(ev) - 1e-9 and (
             r["type"] in SUBSTANTIVE or (r["type"] == "speak" and r["kind"] in ("ack", "progress")))]
@@ -151,7 +155,9 @@ def score(scn: dict, run: dict) -> dict[str, Any]:
             "checks": {k: [(n, v) for n, v in items] for k, items in checks.items()},
             "first_response_ms": [None if x is None else round(x * 1000, 2) for x in lats],
             "mean_first_response_ms": round(1000 * sum(valid_lats) / len(valid_lats), 2) if valid_lats else None,
-            "cancel_latency_ms": [round((cancels[c] - calls[c]["t"]) * 1000, 2) for c in cancels if c in calls],
+            "cancel_after_correction_ms": [round(x * 1000, 2) for x in reaction],
+            # how long each cancelled call had been running (not a reaction time)
+            "call_runtime_before_cancel_ms": [round((cancels[c] - calls[c]["t"]) * 1000, 2) for c in cancels if c in calls],
             "commits": len(run["commits"]), "false_claims": len(false_claims), "wall_s": run["wall_s"],
             "harness_delivery_lag_ms": round(1000 * max(lags, default=0.0), 2)}
 

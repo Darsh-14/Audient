@@ -16,7 +16,7 @@ const rt = new AudientRuntime();
 const voice = new Voice();
 const speech = new LiveSpeech({ lang: /^en/i.test(navigator.language) ? navigator.language : "en-US" });
 const perception = new BrowserPerception({ onStatus: setHint, onResult: onPerceptionResult });
-// the glass listener (3D) reacts to your voice, your cursor and the agent's state; without WebGL the
+// the puffer fish (3D) reacts to your voice, your cursor and the agent's state; without WebGL the
 // 2D amoeba stands in
 const creature = $("creature");
 let blob = { setState() {}, setLevel() {} };

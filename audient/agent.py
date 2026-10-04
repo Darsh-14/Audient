@@ -29,6 +29,7 @@ from .vclock import compute
 PROGRESS_AFTER_S = 2.5
 GIL_SWITCH_S = 0.0005  # perception threads must not starve the fast path (default 5 ms)
 MAX_ATTEMPTS = 3
+AUDIO_ACKS = ("Mm-hm, one moment.", "Got it, one sec.", "Okay, listening.")
 RETRY_BACKOFF_S = 0.3
 
 VERB = {"search": "searching", "find": "finding", "book": "booking", "create": "creating", "get": "getting",
@@ -204,6 +205,7 @@ class RealtimeAgent:
         # optional language model (async callable: context JSON -> decision dict). It replaces the rule
         # parser for understanding; the fast path (acks, cancellation, idempotent commits) stays here.
         self.llm = llm
+        self.audio_n = 0
         self.llm_task: asyncio.Task | None = None
         self.llm_n = 0
         self.dialog: list[dict] = []           # what was said this session, for the model's context
@@ -329,7 +331,9 @@ class RealtimeAgent:
             if self.perception is not None:
                 self.frame_task = self.spawn(compute(self.perception.analyze_frame, ev["path"]))
         elif typ == "audio":
-            self.say("Mm-hm, one moment.", "filler")
+            # a short acknowledgment while the clip is transcribed; varied, so a second clip doesn't get an echo
+            self.say(AUDIO_ACKS[self.audio_n % len(AUDIO_ACKS)], "filler")
+            self.audio_n += 1
             self.spawn(self._asr(ev["path"], ev.get("end_of_turn", True), self.epoch))
         elif typ == "tool_result":
             self.on_result(ev)
