@@ -182,12 +182,24 @@ r0 = paras[0].runs
 r0[0].text = "Theme ID - Theme 05: Interruptible Real-Time Agents"
 for r in r0[1:]:
     r.text = ""
-for p in paras:
-    if p.runs and p.runs[0].text.startswith("Submission Github link"):
-        p.runs[0].text = "Submission Github link - github.com/Darsh-14/Audient"
+TEAM = {"Team Name": "Krenos", "College Name": "SRMIST",
+        "Member Name & Email 1": "Haina Kumari, hainakumari1@gmail.com",
+        "Member Name & Email 2": "Bipin Kumar, bipinkumar620013@gmail.com",
+        "Member Name & Email 3": "Titas Ghosh, titas.ghosh7@gmail.com",
+        "Submission Github link": "github.com/Darsh-14/Audient"}
+for p in list(paras):
+    if not p.runs:
+        continue
+    label = p.runs[0].text.split("-")[0].strip()
+    if label == "Member Name & Email 4":  # a team of three
+        p._p.getparent().remove(p._p)
+        continue
+    if label in TEAM:
+        p.runs[0].text = f"{label} - {TEAM[label]}"
         for r in p.runs[1:]:
             r.text = ""
 info.top = Inches(4.05)
+info.width = Inches(7.4)  # one line per member
 tb = s1.shapes.add_textbox(Inches(0.85), Inches(3.5), Inches(6.3), Inches(0.5))
 tb.text_frame.word_wrap = True
 r = tb.text_frame.paragraphs[0].add_run()
@@ -358,7 +370,7 @@ r.text = "Audient — Dual-Path Full-Duplex Agent with Dynamic Cancellation"
 r.font.size, r.font.bold, r.font.color.rgb = Pt(18), True, PURPLE
 p = tf.add_paragraph()
 r = p.add_run()
-r.text = "Repository: github.com/Darsh-14/Audient   ·   Team: [Team Name], [College Name]"
+r.text = "Repository: github.com/Darsh-14/Audient   ·   Team: Krenos, SRMIST"
 r.font.size, r.font.color.rgb = Pt(13), MUTED
 
 # keep 8 slides, in the guide's order: title, problem, architecture, results, extension, next, checklist, thanks
