@@ -1,4 +1,7 @@
-"""Fill the PRISM template with Audient content. Every number is read from reports/results.json."""
+"""Fill the PRISM template with Audient content: at most 8 slides, as the updated Theme 05 guide asks (problem,
+architecture, benchmark results, extension use case, what's next, plus the template's title, checklist and closing
+slides). The queue-agent numbers are read from reports/results.json; the Full-Duplex-Bench v3 numbers are the FDB
+dict below, copied from the scorers' output of the full runs (reports/fdb/<run>/evaluate_*.txt)."""
 import json
 import sys
 from pathlib import Path
@@ -41,6 +44,11 @@ A_CAN = cancels("audient")
 DOUBLE_B = sum(1 for s in R["baseline"]["scenarios"] for n, v in s["checks"]["safety"] if n.startswith("no double") and not v)
 N = A["scenarios"]
 
+# FDB-v3, all 100 recordings, exact argument match (no GPT-4o judge). "audient" = the run with the hold timed from
+# the end of speech (TAG=fix1); the run with the voice detector and the reply guard is still to come.
+FDB = {"audient": {"pass": 47.0, "self": 70.6, "medium": 52.9, "hard": 36.7, "replied": 82, "latency": 12.1},
+       "gemini2_5": {"pass": 47.0, "self": 41.2, "medium": 44.1, "hard": 40.0, "replied": 99, "latency": 13.2}}
+
 PURPLE, BLUE, GREEN, ORANGE, RED = (RGBColor(0x6D, 0x28, 0xD9), RGBColor(0x25, 0x63, 0xEB), RGBColor(0x05, 0x96, 0x69),
                                     RGBColor(0xD9, 0x77, 0x06), RGBColor(0xDC, 0x26, 0x26))
 INK, MUTED, CARD = RGBColor(0x11, 0x18, 0x27), RGBColor(0x47, 0x55, 0x69), RGBColor(0xF8, 0xF9, 0xFB)
@@ -55,8 +63,13 @@ def clear_body(slide):
             sh._element.getparent().remove(sh._element)
 
 
-def title(slide, subtitle):
+def title(slide, subtitle, heading=None):
     t = next(sh for sh in slide.shapes if sh.is_placeholder and sh.placeholder_format.idx == 0)
+    if heading:
+        runs = t.text_frame.paragraphs[0].runs
+        runs[0].text = heading
+        for r in runs[1:]:
+            r.text = ""
     t.left, t.top, t.width, t.height = Inches(0.6), Inches(0.22), Inches(12.1), Inches(0.95)
     t.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     for p in t.text_frame.paragraphs:
@@ -169,6 +182,11 @@ r0 = paras[0].runs
 r0[0].text = "Theme ID - Theme 05: Interruptible Real-Time Agents"
 for r in r0[1:]:
     r.text = ""
+for p in paras:
+    if p.runs and p.runs[0].text.startswith("Submission Github link"):
+        p.runs[0].text = "Submission Github link - github.com/Darsh-14/Audient"
+        for r in p.runs[1:]:
+            r.text = ""
 info.top = Inches(4.05)
 tb = s1.shapes.add_textbox(Inches(0.85), Inches(3.5), Inches(6.3), Inches(0.5))
 tb.text_frame.word_wrap = True
@@ -198,161 +216,73 @@ card(s, 8.8, 1.8, 3.95, 5.35, "TECHNICAL CHALLENGE", "Concurrency & state consis
     "Transactional recovery: abort superseded in-flight calls within a 15 ms grace period, update the state snapshot, never duplicate a state-changing action.",
 ], ORANGE)
 
-# ---------------------------------------------------------------- 3. existing solutions
-s = S[2]
-clear_body(s)
-title(s, "Why current assistant architectures break under interruption")
-card(s, 0.6, 1.8, 3.95, 5.35, "CASCADED PIPELINE", "ASR → LLM → TTS, turn by turn", [
-    "Strength: mature, modular, strong language quality on clean single turns.",
-    "Gap: latency adds up stage by stage; the user hears nothing until the tool returns.",
-    "Gap: no transactional rollback — a mid-flight correction is handled only after the stale call completes.",
-    f"Measured (our half-duplex baseline, same NLU & OCR): median first response {B_MED / 1000:.1f} s, max {B_MAX / 1000:.1f} s; {B['scenarios_all_checks_pass']}/{N} scenarios fully correct.",
-], GREEN)
-card(s, 4.7, 1.8, 3.95, 5.35, "END-TO-END SPEECH MODELS", "Single audio-in / audio-out network", [
-    "Strength: fast, natural turn-taking and prosody.",
-    "Gap: tool calls and dialogue state live inside the model — hard to cancel, audit or make idempotent.",
-    "Gap: risk of acting on early parameters before the user finishes, and of stale slot values leaking into chained calls.",
-], BLUE)
-card(s, 8.8, 1.8, 3.95, 5.35, "GAPS WE CLOSE", "Three unresolved problems", [
-    "Stale & duplicate execution: no cancellation graph → wrong or double bookings.",
-    "Dead air vs. hallucinated completion: either silence while tools run, or 'Done!' before they finish.",
-    "Fragile floor arbitration: pauses and fillers mistaken for end of turn; real interruptions ignored.",
-    f"Our baseline shows it: {DOUBLE_B} double booking and {100 - B['category_pct']['interrupt']:.0f}% of interruption checks failed.",
-], PURPLE)
-
-# ---------------------------------------------------------------- 4. architecture
+# ---------------------------------------------------------------- architecture (template slide 4)
 s = S[3]
 clear_body(s)
-title(s, "Audient: dual-path engine with a dynamic cancellation graph and transactional state")
-box(s, 0.6, 1.85, 5.9, 0.6, "Event inbox (timestamped)\ntranscript chunks · WAV · PNG frames · interruptions · tool results · manifests", INK, 11)
-box(s, 0.6, 2.8, 2.85, 1.35, "FAST PATH (sync, never awaits)\ndisfluency normaliser · semantic\nend-of-turn check · self-repair ·\nconflict detection · spoken acks", GREEN, 11)
-box(s, 3.65, 2.8, 2.85, 1.35, "SLOW PATH (async tasks)\nschema-driven planner · chained &\nretried tool calls · OCR / LED /\nWhisper in worker threads", BLUE, 11)
-box(s, 0.6, 4.5, 5.9, 1.2, "COORDINATION LAYER\ncancellation graph (DAG) · two-tier slots: tentative | committed\nSHA-256 idempotency keys · commit ledger · retry with same key", RED, 11)
-box(s, 0.6, 6.05, 5.9, 0.6, "Action outbox\nspeak (ack / progress / filler) · tool_call(call_id) · cancel · clarify · final_response + state snapshot", INK, 11)
+title(s, "Audient on Full-Duplex-Bench v3: Gemini Live through LiveKit, with a coordination layer between model and tools")
+box(s, 0.6, 1.85, 5.9, 0.6, "User audio → LiveKit room\nFDB-v3 recording (48 kHz, fillers, pauses, self-corrections), streamed live", INK, 11)
+box(s, 0.6, 2.8, 2.85, 1.35, "LOCAL VOICE DETECTOR\nSilero VAD on the user's audio:\nwhen the user starts and\nstops speaking", GREEN, 11)
+box(s, 3.65, 2.8, 2.85, 1.35, "GEMINI LIVE\nGemini 2.5 Flash native audio:\nlistens, decides, speaks,\nissues tool calls", BLUE, 11)
+box(s, 0.6, 4.5, 5.9, 1.2, "AUDIENT COORDINATION LAYER\nhold, then commit (2.0 s of quiet) · defer, don't drop\nnever repeat an identical call · ask for the reply if Gemini drops it", RED, 11)
+box(s, 0.6, 6.05, 5.9, 0.6, "FDB-v3 mock tools and call log\n12 tools in 4 domains (travel, finance, housing, e-commerce), scored by FDB-v3", INK, 11)
 arrow(s, 2.0, 2.45, 2.0, 2.8)
 arrow(s, 5.1, 2.45, 5.1, 2.8)
-arrow(s, 3.45, 3.47, 3.65, 3.47)
 arrow(s, 2.0, 4.15, 2.0, 4.5)
 arrow(s, 5.1, 4.15, 5.1, 4.5)
 arrow(s, 3.55, 5.7, 3.55, 6.05)
-card(s, 6.75, 1.8, 6.0, 1.7, "REFLEX PATH", None, [
-    f"Semantic acknowledgments ('Got it, updating that. Booking flight for 3.'): median {A_MED:.1f} ms, max {A_MAX:.1f} ms after the user's turn ends.",
-    "Progress narration only after 2.5 s of silence; never claims completion before a tool result.",
+card(s, 6.75, 1.8, 6.0, 1.7, "HOLD, THEN COMMIT", None, [
+    "Pauses: a call made in a pause mid-sentence waits until the user has been quiet for 2.0 s (pauses in FDB-v3 last 1.6-3.2 s).",
+    "Quiet: measured on the user's own audio; LiveKit's Gemini plugin reports Gemini's replies as user speech.",
 ], GREEN, 10.5)
-card(s, 6.75, 3.6, 6.0, 1.7, "CANCELLATION GRAPH", None, [
-    f"Every call, retry timer and progress timer is a DAG node; invalidating a call kills its descendants. Measured cancel latency after a correction: max {max(A_CAN):.1f} ms (grace 15 ms).",
-    "Mid-utterance repair cues ('no wait', 'actually', 'make it') trigger cancellation from partial transcripts.",
+card(s, 6.75, 3.6, 6.0, 1.7, "DEFER, DON'T DROP", None, [
+    "Talked over: if the user speaks again, the call waits; it is dropped only after a correction ('wait', 'actually') and a newer call to the same tool.",
+    f"Result: self-corrections pass {FDB['audient']['self']:.1f}% vs {FDB['gemini2_5']['self']:.1f}% for FDB-v3's own Gemini agent.",
 ], RED, 10.5)
-card(s, 6.75, 5.4, 6.0, 1.75, "TRANSACTIONAL SAFETY", None, [
-    "Tentative slots from partial speech never reach a state-changing call; only committed slots do.",
-    "SHA-256 key over tool + canonical args; commit ledger blocks repeats; a late commit after a cancel is detected and reported, not duplicated.",
+card(s, 6.75, 5.4, 6.0, 1.75, "NEVER REPEAT, NEVER SILENT", None, [
+    "Idempotent: a call with the same tool and arguments runs once; its result is reused.",
+    "Reply guard: when Gemini cancels its own call and drops the reply, the agent asks it once to report the result.",
 ], PURPLE, 10.5)
 
-# ---------------------------------------------------------------- 5. demo
-s = S[4]
-clear_body(s)
-title(s, "Live trace: mid-booking correction (scenario T04, virtual clock, real CPU time charged)")
-tr = json.loads((ROOT / "reports" / "traces" / "audient_T04_mid_booking_adjust.json").read_text(encoding="utf-8"))
-lines = []
-for e in tr["trace"]:
-    if e["type"] == "tool_manifest":
-        continue
-    who = "USER " if e["dir"] == "in" else "AGENT"
-    if e["type"] == "transcript":
-        body, col = f"says: \"{e['text']}\"", RGBColor(0xFD, 0xE6, 0x8A)
-    elif e["type"] == "interruption":
-        body, col = "barge-in (interruption signal)", RGBColor(0xFD, 0xE6, 0x8A)
-    elif e["type"] == "tool_result":
-        who, body, col = "TOOL ", f"result {e['call_id']} status={e['status']}", RGBColor(0x94, 0xA3, 0xB8)
-    elif e["type"] == "tool_call":
-        body, col = f"tool_call {e['call_id']} {e['tool']}({json.dumps(e['args'])})", RGBColor(0x93, 0xC5, 0xFD)
-    elif e["type"] == "cancel":
-        body, col = f"CANCEL {e['call_id']} ({e['reason']})", RGBColor(0xFC, 0xA5, 0xA5)
-    elif e["type"] == "speak":
-        body, col = f"speak[{e['kind']}] \"{e['text']}\"", RGBColor(0x86, 0xEF, 0xAC)
-    else:
-        snap = e.get("state_snapshot", {})
-        body, col = f"{e['type']} \"{e['text']}\"  slots={snap.get('slots')}", RGBColor(0xC4, 0xB5, 0xFD)
-    lines.append((f"{e['t']:7.4f}s  {who}  {body}", col))
-lines.append(("", RGBColor(0xFF, 0xFF, 0xFF)))
-lines.append((f"commits: {len(tr['commits'])} → " + ", ".join(f"{c['tool']}({json.dumps(c['args'])})" for c in tr["commits"]),
-              RGBColor(0xFF, 0xFF, 0xFF)))
-mono(s, 0.6, 1.8, 12.15, 3.55, lines, 10)
-card(s, 0.6, 5.5, 5.95, 1.65, "WHAT TO NOTICE", None, [
-    "The correction lands while book_flight(2) is in flight: it is cancelled 0.8 ms later and re-issued with 3 passengers — exactly one commit.",
-    f"Across the suite the first acknowledgment follows a user turn by {A_MED:.1f} ms (median, max {A_MAX:.1f} ms); 'confirmed' is only said after the tool result.",
-], GREEN, 10.5)
-card(s, 6.8, 5.5, 5.95, 1.65, "REPRODUCE & VIDEO", None, [
-    "python run_eval.py --agent audient --show T04   (any scenario id works, e.g. V03 for camera + self-repair).",
-    "Demo video (≤ 5 min): [link to be added after recording].",
-], BLUE, 10.5)
-
-# ---------------------------------------------------------------- 6. tech stack
-s = S[5]
-clear_body(s)
-title(s, "What the prototype actually runs on — offline, CPU-only, no API keys")
-card(s, 0.6, 1.8, 5.95, 2.6, "RUNTIME & ORCHESTRATION", None, [
-    "Python asyncio: fast path, slow-path tasks and the coordination layer in one event loop.",
-    "Custom virtual-time event loop: skips idle waits, charges real CPU time → honest latencies, fast replays.",
-    "Pure-Python cancellation DAG, commit ledger, SHA-256 idempotency (hashlib).",
-], GREEN, 12.5)
-card(s, 6.8, 1.8, 5.95, 2.6, "PERCEPTION", None, [
-    "RapidOCR (ONNX Runtime) + OpenCV: error codes and model numbers from camera frames; LED colour from bright, round, saturated blobs; darkness/blur checks.",
-    "Whisper base.en via Hugging Face Transformers for WAV clips — implemented, optional, not benchmarked (model not downloaded).",
-], BLUE, 12.5)
-card(s, 0.6, 4.55, 5.95, 2.6, "LANGUAGE UNDERSTANDING", None, [
-    "Deterministic, schema-driven NLU: parameters are typed from the tool manifest (name, JSON type, enum, format), so unseen tools work without code changes.",
-    "Regex + lexicon extractors for places, dates, times, counts, codes, indicators, names; self-repair resolution.",
-], PURPLE, 12.5)
-card(s, 6.8, 4.55, 5.95, 2.6, "EVALUATION & PACKAGING", None, [
-    "Streaming replay harness, deterministic mock tools (latency + fault injection), trace-based scorer (40/35/15/10, 15 ms grace).",
-    "pytest unit tests; run_evaluation.sh one-command run; Dockerfile + compose provided (not yet built — no Docker on the dev machine).",
-], ORANGE, 12.5)
-
-# ---------------------------------------------------------------- 7. impact
+# ---------------------------------------------------------------- extension use case (template slide 7)
 s = S[6]
 clear_body(s)
-title(s, "Impact & use cases — each one is a scenario in our test suite")
-card(s, 0.6, 1.8, 3.95, 5.35, "TOOL DOMAINS", "What the agent can drive today", [
-    "Travel: flight search → cheapest-flight booking (chained calls).",
-    "In-car: route to a destination that changes mid-calculation.",
-    "Support: tickets with priority from 'it's urgent'.",
-    "Unseen tool: a restaurant reservation tool it never saw, driven purely from the manifest.",
-    "Zero double bookings across the whole suite, including a mid-booking passenger change.",
-], BLUE)
-card(s, 4.7, 1.8, 3.95, 5.35, "MULTIMODAL", "Camera-grounded troubleshooting", [
+title(s, "Beyond the benchmark's domains: hands-free appliance troubleshooting from a camera frame", "Extension use case")
+card(s, 0.6, 1.8, 3.95, 5.35, "THE USE CASE", "Camera-grounded troubleshooting", [
     "'My washer shows error E-20…' → reads model WM-3000 from the frame, looks up E20.",
-    "'…wait, no, the red light stopped, now it's blinking blue twice' → cancels the E20 lookup, grounds the new symptom, answers from the manual (valve fault).",
+    "'…wait, no, the red light stopped, now it's blinking blue twice' → drops the stale E20 request, grounds the new symptom, answers from the manual (valve fault).",
     "Too-dark frame → asks the user to move closer instead of guessing.",
 ], GREEN)
+card(s, 4.7, 1.8, 3.95, 5.35, "RUNS END TO END", "How to try it", [
+    "Web app: python api/run.py, open localhost:8000, pick or upload a camera frame, then speak or type.",
+    "Scripted run: python run_eval.py --agent audient --show V03 prints every timestamped action.",
+    "Perception: RapidOCR + OpenCV read the model, error code and LED colour on the CPU.",
+    "Scope: runs on Audient's original event-driven agent (same correction rules), not yet inside the LiveKit agent.",
+], BLUE)
 card(s, 8.8, 1.8, 3.95, 5.35, "WHO BENEFITS", "Where interruption-safety matters", [
-    "Drivers: change destinations hands-free without stale routes.",
-    "People with disfluent speech: pauses, fillers and stutters don't cut them off.",
-    "Contact centres: no double transactions when customers change their minds mid-booking.",
     "Field technicians: hands-free manual lookup grounded in what the camera sees.",
+    "Home users: describe a fault, change their mind, and get the answer for the fault they meant.",
+    "People with disfluent speech: pauses, fillers and stutters don't cut them off.",
 ], PURPLE)
 
-# ---------------------------------------------------------------- 8. results
+# ---------------------------------------------------------------- benchmark results (template slide 8)
 s = S[7]
 clear_body(s)
-title(s, f"Innovations, measured results ({N} scenarios, our harness) and honest limitations")
-card(s, 0.6, 1.8, 3.6, 5.35, "INNOVATIONS", None, [
-    "Cancellation graph over calls, retries and timers.",
-    "Two-tier slots: tentative (partial speech) vs committed.",
-    "Idempotency barrier: SHA-256 keys + commit ledger + late-commit reconciliation.",
-    "Semantic end-of-turn hold for pauses and fillers.",
-    "Virtual clock that charges real CPU — found and fixed a GIL-contention bug (cancel took 17.7 ms while OCR ran).",
+title(s, "Full-Duplex-Bench v3: all 100 recordings on GitHub Codespaces, arguments compared exactly (no GPT-4o judge)",
+      "Benchmark results")
+card(s, 0.6, 1.8, 3.6, 5.35, "WHAT WE COMPARED", None, [
+    "Same model, voice and tools: FDB-v3's own gemini2_5 agent is the baseline; Audient adds its layer and a few instructions.",
+    "Strict pass: every expected call, with the right arguments.",
+    "Reproduce: bash fdb_agent/setup.sh, then bash fdb_agent/run_benchmark.sh audient.",
 ], PURPLE, 11.5)
-rows = [("Metric", "Audient", "Half-duplex"),
-        ("Scenarios, all checks pass", f"{A['scenarios_all_checks_pass']}/{N}", f"{B['scenarios_all_checks_pass']}/{N}"),
-        ("Weighted score (pre-multiplier)", f"{A['weighted_base_score']:.1f}", f"{B['weighted_base_score']:.1f}"),
-        ("Task completion", f"{A['category_pct']['task']:.0f}%", f"{B['category_pct']['task']:.0f}%"),
-        ("Interruption recovery", f"{A['category_pct']['interrupt']:.0f}%", f"{B['category_pct']['interrupt']:.0f}%"),
-        ("Latency credit", f"{A['category_pct']['latency']:.0f}%", f"{B['category_pct']['latency']:.0f}%"),
-        ("First response, median", f"{A_MED:.1f} ms", f"{B_MED:,.0f} ms"),
-        ("Max cancel latency", f"{max(A_CAN):.1f} ms", "never cancels"),
-        ("Double bookings", "0", str(DOUBLE_B))]
-gt = s.shapes.add_table(len(rows), 3, Inches(4.35), Inches(1.85), Inches(4.6), Inches(4.4)).table
+fa, fb = FDB["audient"], FDB["gemini2_5"]
+rows = [("Metric", "Audient", "FDB Gemini"),
+        ("Strict pass rate", f"{fa['pass']:.1f}%", f"{fb['pass']:.1f}%"),
+        ("Self-correction", f"{fa['self']:.1f}%", f"{fb['self']:.1f}%"),
+        ("Medium (2 tools)", f"{fa['medium']:.1f}%", f"{fb['medium']:.1f}%"),
+        ("Hard (3-tool chains)", f"{fa['hard']:.1f}%", f"{fb['hard']:.1f}%"),
+        ("Replied at all", f"{fa['replied']}/100", f"{fb['replied']}/100"),
+        ("Avg latency to reply", f"{fa['latency']:.1f} s", f"{fb['latency']:.1f} s")]
+gt = s.shapes.add_table(len(rows), 3, Inches(4.35), Inches(1.85), Inches(4.6), Inches(3.9)).table
 gt.columns[0].width, gt.columns[1].width, gt.columns[2].width = Inches(2.2), Inches(1.2), Inches(1.2)
 for i, row in enumerate(rows):
     for j, val in enumerate(row):
@@ -361,75 +291,54 @@ for i, row in enumerate(rows):
         p = cell.text_frame.paragraphs[0]
         p.alignment = PP_ALIGN.LEFT if j == 0 else PP_ALIGN.CENTER
         for r in p.runs:
-            r.font.size = Pt(10.5)
+            r.font.size = Pt(11)
             r.font.bold = i == 0 or j == 1
-            r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF) if i == 0 else (GREEN if j == 1 else INK)
+            r.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF) if i == 0 else INK
         cell.fill.solid()
         cell.fill.fore_color.rgb = PURPLE if i == 0 else (RGBColor(0xF3, 0xF0, 0xFF) if i % 2 else RGBColor(0xFF, 0xFF, 0xFF))
-tb = s.shapes.add_textbox(Inches(4.35), Inches(6.35), Inches(4.6), Inches(0.8))
+tb = s.shapes.add_textbox(Inches(4.35), Inches(5.9), Inches(4.6), Inches(1.2))
 tb.text_frame.word_wrap = True
 r = tb.text_frame.paragraphs[0].add_run()
-r.text = "Baseline = same NLU and OCR, half-duplex control flow. Source: reports/results.json (python run_eval.py)."
+r.text = ("Audient column: the full run before the voice-detector and reply-guard fixes; the full run with them is pending. "
+          "Source: reports/fdb/<run>/evaluate_*.txt, from FDB-v3's own scorers.")
 r.font.size, r.font.italic, r.font.color.rgb = Pt(9), True, MUTED
-card(s, 9.1, 1.8, 3.65, 5.35, "LIMITATIONS", None, [
-    "Own test suite: the official kit wasn't released; the agent was tuned on these 15 scenarios.",
-    "Audio path not benchmarked (Whisper model not installed).",
-    "Rule-based NLU: limited gazetteers and entity types.",
-    "No LED blink counting across frames yet.",
-    "Docker image not yet built or tested.",
+card(s, 9.1, 1.8, 3.65, 5.35, "WHAT HELD IT BACK", None, [
+    "No reply: LiveKit's Gemini plugin reported Gemini's replies as user speech, so calls were held up to 20 s.",
+    "Fixed: a local voice detector; of the 24 recordings that had gone silent, 18 now reply (was 6).",
+    "Still silent: Gemini server errors (1011, 1007), outside our control.",
+    "Exact match: '3000' vs 3000 fails without the judge.",
 ], ORANGE, 11.5)
 
-# ---------------------------------------------------------------- 9. next
+# ---------------------------------------------------------------- what's next (template slide 9)
 s = S[8]
 clear_body(s)
-title(s, "What's next: from verified prototype to hidden-set robustness and on-device")
-card(s, 0.6, 1.8, 5.95, 2.6, "EVALUATION", "Plug into the official kit", [
-    "Map the released schema in protocol.adapt_event; run the 9 public + ~60 hidden-style scenarios.",
-    "Adversarial-timing generator: corrections landing at random offsets around tool completion.",
+title(s, "Turn the self-correction gain into a higher overall pass rate")
+card(s, 0.6, 1.8, 5.95, 2.6, "BENCHMARK", "Close the gap", [
+    "Full run with the voice detector and reply guard; report it whatever it shows.",
+    "Normalise argument formats (dates, numbers, IDs) before a call runs, so exact match and the judge agree.",
 ], BLUE, 12.5)
-card(s, 6.8, 1.8, 5.95, 2.6, "SPEECH", "Streaming audio in the loop", [
-    "Stream Whisper partial hypotheses into the speculative path; confidence-gated clarifications.",
-    "Acoustic cues (pitch drop, pause length) to complement the semantic end-of-turn check.",
+card(s, 6.8, 1.8, 5.95, 2.6, "TURN-TAKING", "Local end-of-turn", [
+    "Move end-of-turn to the local voice detector once LiveKit's Gemini plugin supports manual turns.",
+    "Handle Gemini's own call cancellations directly instead of asking again for the reply.",
 ], GREEN, 12.5)
-card(s, 0.6, 4.55, 5.95, 2.6, "REASONING", "LLM slow path, safely", [
-    "Optional LLM planner for open-ended requests; every extracted slot must be span-verified against the transcript before use.",
-    "Process-based perception workers to remove GIL contention entirely.",
+card(s, 0.6, 4.55, 5.95, 2.6, "EXTENSION", "Inside the LiveKit agent", [
+    "Give the LiveKit agent the camera-troubleshooting tools, so the extension runs on the benchmark agent.",
+    "Blink-pattern recognition across frames, not just LED colour.",
 ], PURPLE, 12.5)
 card(s, 6.8, 4.55, 5.95, 2.6, "ON-DEVICE", "Galaxy-class deployment", [
-    "The fast path is pure Python with no model on the critical path — a natural fit for on-device execution.",
-    "Blink-pattern recognition from frame sequences for the troubleshooting extension.",
+    "Plain Python: the coordination layer has no model on the critical path, a natural fit for on-device execution.",
+    "Swap the hosted speech model for an on-device one behind the same layer.",
 ], ORANGE, 12.5)
-
-# ---------------------------------------------------------------- 10. differentiation
-s = S[9]
-clear_body(s)
-title(s, "Why Audient stands out")
-card(s, 0.6, 1.8, 5.95, 2.6, "VERIFIABLE", "Every claim has a trace", [
-    "Deterministic mock tools + virtual clock: the jury can replay any scenario and read each timestamped action.",
-    "One command: ./run_evaluation.sh (tests + benchmark + baseline comparison).",
-], PURPLE, 12.5)
-card(s, 6.8, 1.8, 5.95, 2.6, "TRANSACTIONAL SAFETY", "Zero duplicate state changes", [
-    "Idempotency keys survive retries; tentative slots can never trigger a state change.",
-    "A commit that races a cancel is reconciled and reported — never repeated.",
-], RED, 12.5)
-card(s, 0.6, 4.55, 5.95, 2.6, "LATENCY HIDING", "Talk while tools work", [
-    f"Acknowledgments in {A_MED:.1f} ms (median) vs {B_MED / 1000:.1f} s for the half-duplex baseline.",
-    f"Speculative read-only prefetch from partial speech: in T11 the answer is spoken at {T11_FINAL:.2f} s instead of {T11_EOT + 1.6:.2f} s ({T11_EOT + 1.6 - T11_FINAL:.1f} s saved).",
-], GREEN, 12.5)
-card(s, 6.8, 4.55, 5.95, 2.6, "MULTIMODAL", "Speech + camera, with self-repair", [
-    "OCR + LED grounding runs behind a spoken acknowledgment in a worker thread.",
-    "Cross-modal correction (error code → blinking light) cancels the stale lookup and re-grounds.",
-], BLUE, 12.5)
 
 # ---------------------------------------------------------------- 11. checklist
 s = S[10]
 body = next(sh for sh in s.shapes if sh.is_placeholder and sh.placeholder_format.idx == 1)
 title_ph = next(sh for sh in s.shapes if sh.is_placeholder and sh.placeholder_format.idx == 0)
 title_ph.left, title_ph.top, title_ph.width, title_ph.height = Inches(0.6), Inches(0.22), Inches(12.1), Inches(0.95)
-items = ["Working prototype code — public or shared GitHub repo (Y/N): Y — code complete locally; GitHub link to be added after push",
-         "README with reproducible setup instructions (Y/N): Y — README.md, requirements.txt, run_evaluation.sh",
-         "Demo video, max 5 minutes (YouTube or Drive link): [to be recorded — link pending]",
-         "Presentation file (PPT or PDF) (Y/N): Y — this deck"]
+items = ["Working prototype code — public GitHub repo (Y/N): Y — github.com/Darsh-14/Audient",
+         "README with reproducible setup instructions (Y/N): Y — README.md and fdb_agent/README.md (setup.sh, run_benchmark.sh)",
+         "Demo video, 3 to 5 minutes (YouTube or Drive link): Google Drive folder, linked in README.md",
+         "Presentation file (PPT or PDF) (Y/N): Y — this deck (8 slides)"]
 tf = body.text_frame
 for i, (p, txt) in enumerate(zip(tf.paragraphs, items)):
     for r in p.runs[1:]:
@@ -449,8 +358,19 @@ r.text = "Audient — Dual-Path Full-Duplex Agent with Dynamic Cancellation"
 r.font.size, r.font.bold, r.font.color.rgb = Pt(18), True, PURPLE
 p = tf.add_paragraph()
 r = p.add_run()
-r.text = "Repository: [GitHub link]   ·   Team: [Team Name], [College Name]"
+r.text = "Repository: github.com/Darsh-14/Audient   ·   Team: [Team Name], [College Name]"
 r.font.size, r.font.color.rgb = Pt(13), MUTED
+
+# keep 8 slides, in the guide's order: title, problem, architecture, results, extension, next, checklist, thanks
+KEEP = [0, 1, 3, 7, 6, 8, 10, 11]
+ids = prs.slides._sldIdLst
+slides = list(ids)
+for i, el in enumerate(slides):
+    if i not in KEEP:
+        prs.part.drop_rel(el.rId)
+    ids.remove(el)
+for i in KEEP:
+    ids.append(slides[i])
 
 prs.save(str(OUT))
 print("saved", OUT)

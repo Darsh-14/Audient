@@ -63,14 +63,48 @@ The layer does what it was built for: self-corrections improve by 23 to 29 point
 recordings where the agent never replied. The cause was found in LiveKit's Gemini plugin (1.8.4): it reports that
 the user started speaking whenever Gemini starts a reply, and that they stopped only when the reply ends. A call
 made inside a reply therefore looked as if the user was still talking and was held for the 20 s safety limit,
-often past the end of the recording. The layer now listens to the user's audio itself. On a recording that had
-been silent, the agent now replies, but one recording proves nothing about the overall score. The full run is in
-progress, and this table will be updated with its result either way.
+often past the end of the recording. The layer now listens to the user's audio itself. Re-running the 24 recordings
+of the scenarios that had gone silent, 18 replied (before: 6). Of the 6 still silent, 3 were Gemini Live server
+errors and 2 were calls Gemini cancelled itself and then never answered; a reply guard now asks the model once for
+that reply (on those 2 scenarios: 3 of 3 recordings replied). These were chosen because they failed, so they are a
+check, not a score. The full run is in progress, and this table will be updated with its result either way.
+
+## Extension use case: camera-grounded appliance troubleshooting
+
+> **This is our extension beyond the benchmark's domains** (Theme 05 guide: "extend it to one new use case").
+
+A user troubleshoots a washing machine hands-free, pointing a camera at it and changing their mind mid-sentence:
+
+1. "My washer shows error E-20, what should I do?" with a camera frame: the agent acknowledges at once and reads
+   the model number (WM-3000) and the error code from the frame with OCR.
+2. "Wait, no, the red light stopped, now it's blinking blue twice", with a new frame: the agent drops the stale E20
+   request, reads the LED colour from the new frame, and makes **one** call:
+   `lookup_manual(device_model="WM-3000", indicator="blue_blinking_2")`.
+3. It answers from the manual: "Water inlet valve not opening. Turn off the supply, check the valve screen for debris
+   and verify the valve coil (manual section 7.3)." A frame that is too dark gets "move closer", not a guess.
+
+**Run it end to end:**
+
+```bash
+python run_eval.py --agent audient --show V03    # scripted: frames + speech, every timestamped action printed
+python api/run.py                                # web app at http://localhost:8000: pick or upload a camera frame, then speak or type
+```
+
+**Verified:** `run_eval.py --show V03` (2026-10-06, Windows, CPU) made the single correct call above, never ran the
+E20 lookup, and grounded its answer in the manual ("valve"). One of the scenario's checks fails: it expects the E20
+lookup to be *cancelled*, but in this run the correction arrived before OCR had finished, so that lookup was never
+started. The headless browser test (`node tests/web/e2e.mjs`) also covers a camera frame being read (WM-3000, E20) and
+the stale lookup being cancelled.
+
+**Scope, honestly:** the extension runs on Audient's original event-driven agent (the sections below), with the same
+correction rules as the benchmark agent: hold, cancel stale work, never repeat a write. It does not yet run inside
+the LiveKit agent; adding the camera tools there is the next step. Perception (RapidOCR, OpenCV) runs on the CPU, with
+no API keys. The first start downloads the speech model and took about 2 minutes on our laptop.
 
 ## Demo video & presentation
 
-* **Demo video (≤ 5 min):** [Google Drive folder](https://drive.google.com/drive/folders/16Jqalua3wP0c1ag2Fa3MNCiXJdr55boL)
-* **Presentation:** [docs/SRMIST_krenos_Submission.pptx](docs/SRMIST_krenos_Submission.pptx)
+* **Demo video (3 to 5 min):** [Google Drive folder](https://drive.google.com/drive/folders/16Jqalua3wP0c1ag2Fa3MNCiXJdr55boL)
+* **Presentation (8 slides):** [docs/SRMIST_krenos_Submission.pptx](docs/SRMIST_krenos_Submission.pptx)
 
 ## Quick start
 
