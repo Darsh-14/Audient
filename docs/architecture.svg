@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 490" width="1080" height="490" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>Audient architecture</title>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1080" height="490" fill="#ffffff"/>
+
+  <!-- groups -->
+  <g stroke-width="1.5">
+    <rect x="20" y="20" width="176" height="412" rx="12" fill="#EEF2FF" stroke="#4F46E5"/>
+    <rect x="236" y="20" width="176" height="412" rx="12" fill="#ECFDF5" stroke="#059669"/>
+    <rect x="452" y="20" width="176" height="412" rx="12" fill="#FEF2F2" stroke="#DC2626"/>
+    <rect x="668" y="20" width="176" height="412" rx="12" fill="#EFF6FF" stroke="#2563EB"/>
+    <rect x="884" y="20" width="176" height="412" rx="12" fill="#F5F3FF" stroke="#7C3AED"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="108" y="46" font-size="14" font-weight="700" fill="#1E1B4B">Input events</text>
+    <text x="108" y="64" font-size="11" fill="#475569">timestamped</text>
+    <text x="324" y="46" font-size="14" font-weight="700" fill="#064E3B">Fast path</text>
+    <text x="324" y="64" font-size="11" fill="#475569">synchronous, never awaits</text>
+    <text x="540" y="46" font-size="14" font-weight="700" fill="#7F1D1D">Coordination layer</text>
+    <text x="540" y="64" font-size="11" fill="#475569">what may reach the tools</text>
+    <text x="756" y="46" font-size="14" font-weight="700" fill="#1E3A8A">Slow path</text>
+    <text x="756" y="64" font-size="11" fill="#475569">async tasks, worker threads</text>
+    <text x="972" y="46" font-size="14" font-weight="700" fill="#3B0764">Output actions</text>
+    <text x="972" y="64" font-size="11" fill="#475569">to the user and the tools</text>
+  </g>
+
+  <!-- items: white boxes, two lines each -->
+  <g fill="#ffffff" stroke-width="1.2">
+    <rect x="30" y="84" width="156" height="58" rx="8" stroke="#4F46E5"/>
+    <rect x="30" y="154" width="156" height="58" rx="8" stroke="#4F46E5"/>
+    <rect x="30" y="224" width="156" height="58" rx="8" stroke="#4F46E5"/>
+    <rect x="30" y="294" width="156" height="58" rx="8" stroke="#4F46E5"/>
+    <rect x="30" y="364" width="156" height="58" rx="8" stroke="#4F46E5"/>
+
+    <rect x="246" y="84" width="156" height="58" rx="8" stroke="#059669"/>
+    <rect x="246" y="154" width="156" height="58" rx="8" stroke="#059669"/>
+    <rect x="246" y="224" width="156" height="58" rx="8" stroke="#059669"/>
+    <rect x="246" y="294" width="156" height="58" rx="8" stroke="#059669"/>
+
+    <rect x="462" y="84" width="156" height="58" rx="8" stroke="#DC2626"/>
+    <rect x="462" y="154" width="156" height="58" rx="8" stroke="#DC2626"/>
+    <rect x="462" y="294" width="156" height="58" rx="8" stroke="#DC2626"/>
+
+    <rect x="678" y="154" width="156" height="58" rx="8" stroke="#2563EB"/>
+    <rect x="678" y="364" width="156" height="58" rx="8" stroke="#2563EB"/>
+
+    <rect x="894" y="84" width="156" height="58" rx="8" stroke="#7C3AED"/>
+    <rect x="894" y="154" width="156" height="58" rx="8" stroke="#7C3AED"/>
+    <rect x="894" y="224" width="156" height="58" rx="8" stroke="#7C3AED"/>
+    <rect x="894" y="294" width="156" height="58" rx="8" stroke="#7C3AED"/>
+  </g>
+  <g text-anchor="middle" fill="#0F172A">
+    <g font-size="12.5" font-weight="600">
+      <text x="108" y="108">Transcript chunks</text>
+      <text x="108" y="178">Interruption signal</text>
+      <text x="108" y="248">Tool manifest</text>
+      <text x="108" y="318">WAV clips</text>
+      <text x="108" y="388">PNG camera frames</text>
+      <text x="324" y="108">Disfluency normaliser</text>
+      <text x="324" y="178">Semantic end of turn</text>
+      <text x="324" y="248">Self-repair detection</text>
+      <text x="324" y="318">Spoken acknowledgment</text>
+      <text x="540" y="108">Cancellation graph</text>
+      <text x="540" y="178">Two-tier slots</text>
+      <text x="540" y="318">Idempotency keys</text>
+      <text x="756" y="178">Schema-driven planner</text>
+      <text x="756" y="388">Perception</text>
+      <text x="972" y="108">cancel</text>
+      <text x="972" y="178">final / clarify</text>
+      <text x="972" y="248">speak</text>
+      <text x="972" y="318">tool_call</text>
+    </g>
+    <g font-size="11" fill="#475569">
+      <text x="108" y="126">+ end-of-turn markers</text>
+      <text x="108" y="196">user talks over agent</text>
+      <text x="108" y="266">names · args · effects</text>
+      <text x="108" y="336">spoken requests</text>
+      <text x="108" y="406">labels · LEDs</text>
+      <text x="324" y="126">fillers · stutters</text>
+      <text x="324" y="196">holds the floor on pauses</text>
+      <text x="324" y="266">corrections · conflicts</text>
+      <text x="324" y="336">within milliseconds</text>
+      <text x="540" y="126">stale calls · timers</text>
+      <text x="540" y="196">tentative → committed</text>
+      <text x="540" y="336">SHA-256 + commit ledger</text>
+      <text x="756" y="196">chain · clarify · retry</text>
+      <text x="756" y="406">RapidOCR · LED · Whisper</text>
+      <text x="972" y="126">stale call_id</text>
+      <text x="972" y="196">+ state snapshot</text>
+      <text x="972" y="266">fillers · acks · progress</text>
+      <text x="972" y="336">explicit call_id</text>
+    </g>
+  </g>
+
+  <!-- flows -->
+  <g fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)">
+    <path d="M186,113 H243"/>
+    <path d="M186,183 C216,183 216,253 243,253"/>
+    <path d="M324,142 V151"/>
+    <path d="M324,212 V221"/>
+    <path d="M324,282 V291"/>
+    <path d="M402,246 C432,246 432,113 459,113"/>
+    <path d="M402,260 C436,260 436,183 459,183"/>
+    <path d="M402,323 C430,323 430,268 460,268 H891"/>
+    <path d="M618,183 H675"/>
+    <path d="M678,200 H648 V310 H621"/>
+    <path d="M618,336 H891"/>
+    <path d="M618,113 H891"/>
+    <path d="M834,183 H891"/>
+    <path d="M756,364 V215"/>
+    <path d="M108,432 V458 H756 V425" stroke-dasharray="5 4"/>
+  </g>
+  <g font-size="11" fill="#475569" text-anchor="middle">
+    <text x="432" y="476">audio, frames and the tool manifest go to perception and the planner</text>
+  </g>
+</svg>

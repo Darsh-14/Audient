@@ -90,75 +90,7 @@ Outputs: `reports/results.json` (scores, per-check pass/fail, latencies) and `re
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    subgraph IN["📥 Input events · timestamped"]
-        direction TB
-        T["🗣️ Transcript chunks<br/>+ end-of-turn markers"]
-        A["🎙️ WAV clips"]
-        F["📷 PNG camera frames"]
-        I["✋ Interruption signal"]
-        M["🧰 Tool manifest"]
-    end
-
-    subgraph FAST["⚡ Fast path · synchronous, never awaits"]
-        direction TB
-        N["Disfluency normaliser<br/>fillers · stutters · false starts"]
-        E["Semantic end-of-turn check<br/>holds the floor on pauses"]
-        R["Self-repair & slot<br/>conflict detection"]
-        K["Spoken acknowledgment<br/>within milliseconds"]
-        N --> E --> R --> K
-    end
-
-    subgraph COORD["🛡️ Coordination layer"]
-        direction TB
-        G["Cancellation graph<br/>calls · retries · timers"]
-        S["Two-tier slots<br/>tentative ➜ committed"]
-        L["SHA-256 idempotency keys<br/>+ commit ledger"]
-    end
-
-    subgraph SLOW["🧠 Slow path · async tasks & worker threads"]
-        direction TB
-        P["Schema-driven planner<br/>chained calls · clarify · retry"]
-        V["Perception<br/>RapidOCR · LED colour · Whisper"]
-    end
-
-    subgraph OUT["📤 Output actions"]
-        direction TB
-        O1["speak"]
-        O2["tool_call · call_id"]
-        O3["cancel"]
-        O4["clarify"]
-        O5["final_response<br/>+ state snapshot"]
-    end
-
-    T --> N
-    I --> R
-    A --> V
-    F --> V
-    M --> P
-    R -- "stale work" --> G
-    R -- "new values" --> S
-    S --> P
-    V --> P
-    P --> L
-    L --> O2
-    G --> O3
-    K --> O1
-    P --> O4
-    P --> O5
-
-    classDef input fill:#EEF2FF,stroke:#4F46E5,color:#1E1B4B
-    classDef fast fill:#ECFDF5,stroke:#059669,color:#064E3B
-    classDef coord fill:#FEF2F2,stroke:#DC2626,color:#7F1D1D
-    classDef slow fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A
-    classDef out fill:#F5F3FF,stroke:#7C3AED,color:#3B0764
-    class T,A,F,I,M input
-    class N,E,R,K fast
-    class G,S,L coord
-    class P,V slow
-    class O1,O2,O3,O4,O5 out
-```
+![Audient architecture: input events feed a fast path (disfluency normaliser, semantic end of turn, self-repair detection, spoken acknowledgment), a coordination layer (cancellation graph, two-tier slots, idempotency keys) and a slow path (planner, perception), which produce cancel, final response or clarify, speak and tool_call actions](docs/architecture.svg)
 
 **A correction mid-booking** (scenario T04, times from a real run):
 
